@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formularz Dokumentu</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Dodaj Dokument</h1>
+        <form id="document-form">
+            <label for="imie">Imię:</label>
+            <input type="text" id="imie" name="imie" required>
+
+            <label for="nazwisko">Nazwisko:</label>
+            <input type="text" id="nazwisko" name="nazwisko" required>
+
+            <label for="data_zawarcia">Data zawarcia:</label>
+            <input type="date" id="data_zawarcia" name="data_zawarcia" required>
+
+            <label for="data_zakonczenia">Data zakończenia:</label>
+            <input type="date" id="data_zakonczenia" name="data_zakonczenia" required>
+
+            <button type="submit">Dodaj dokument</button>
+        </form>
+
+        <div id="response"></div>
+    </div>
+
+    <script src="/static/js/script.js"></script>
+</body>
+</html>
