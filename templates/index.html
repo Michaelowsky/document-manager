@@ -1,31 +1,83 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Formularz Dokumentu</title>
+    <title>Document Manager</title>
     <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
-    <div class="container">
-        <h1>Dodaj Dokument</h1>
-        <form id="document-form">
-            <label for="imie">Imię:</label>
-            <input type="text" id="imie" name="imie" required>
+    <div class="wrapper">
+        <!-- Ekran wstępu -->
 
-            <label for="nazwisko">Nazwisko:</label>
-            <input type="text" id="nazwisko" name="nazwisko" required>
+        <!-- Pasek boczny -->
+        <div class="sidebar">
+            <img src="/static/images/logo.png" alt="Logo firmy" class="logo">
+            <button id="homeButton">Ekran główny</button>
+            <div class="dropdown">
+                <button id="toolsButton">Produkcja</button>
+                <div class="dropdown-content">
+                    <button id="addDocumentButton">Nowa Polisa</button>
+                </div>
+            </div>
+        </div>
 
-            <label for="data_zawarcia">Data zawarcia:</label>
-            <input type="date" id="data_zawarcia" name="data_zawarcia" required>
+        <!-- Główna zawartość -->
+        <div class="main-content">
+            <div id="homeContent" class="content active">
+                <h1>Witaj w aplikacji archiwizacji!</h1>
+                <p>Wybierz opcję po lewej stronie, aby zacząć.</p>
+            </div>
 
-            <label for="data_zakonczenia">Data zakończenia:</label>
-            <input type="date" id="data_zakonczenia" name="data_zakonczenia" required>
+            <div id="addDocumentContent" class="content">
+                <h1>Nowa Polisa</h1>
+                <form id="document-form">
+                    <div class="form-group">
+                        <label for="rodzaj_polisy">Rodzaj:</label>
+                        <select id="rodzaj_polisy" name="rodzaj_polisy" required>
+                            <option value="Komunikacyjna">Komunikacyjna</option>
+                            <option value="Majątkowa">Majątkowa</option>
+                            <option value="Życiowa">Życiowa</option>
+                            <option value="Należności">Należności</option>
+                            <option value="Inne">Inne</option>
+                        </select>
+                    </div>
 
-            <button type="submit">Dodaj dokument</button>
-        </form>
+                    <div class="form-group">
+                        <label for="imie">Imię:</label>
+                        <input type="text" id="imie" name="imie" required>
+                    </div>
 
-        <div id="response"></div>
+                    <div class="form-group">
+                        <label for="nazwisko">Nazwisko:</label>
+                        <input type="text" id="nazwisko" name="nazwisko" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="numer_polisy">Numer polisy:</label>
+                        <input type="text" id="numer_polisy" name="numer_polisy" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="towarzystwo">Nazwa Towarzystwa Ubezpieczeniowego:</label>
+                        <input type="text" id="towarzystwo" name="towarzystwo" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="data_zawarcia">Data zawarcia:</label>
+                        <input type="date" id="data_zawarcia" name="data_zawarcia" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="data_zakonczenia">Data zakończenia:</label>
+                        <input type="date" id="data_zakonczenia" name="data_zakonczenia" required>
+                    </div>
+
+                    <button type="submit">Dodaj dokument</button>
+                </form>
+                <div id="response"></div>
+            </div>
+        </div>
     </div>
 
     <script src="/static/js/script.js"></script>

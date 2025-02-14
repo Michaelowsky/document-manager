@@ -1,14 +1,14 @@
 from pydantic import BaseModel
 from datetime import date
 
-class DokumentCreate(BaseModel):
+class PolisaCreate(BaseModel):
+    rodzaj_polisy: str
     imie: str
     nazwisko: str
     data_zawarcia: date
     data_zakonczenia: date
 
-
-class DokumentResponse(DokumentCreate):
+class PolisaResponse(PolisaCreate):
     id: int
 
     class Config:

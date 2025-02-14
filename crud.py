@@ -1,12 +1,12 @@
 from sqlalchemy.orm import Session
 import models, schemas
 
-def dodaj_dokument(db: Session, dokument: schemas.DokumentCreate):
-    nowy_dokument = models.Dokument(**dokument.dict())
-    db.add(nowy_dokument)
+def dodaj_polise(db: Session, polisa: schemas.PolisaCreate):
+    nowa_polisa = models.Polisa(**polisa.dict())
+    db.add(nowa_polisa)
     db.commit()
-    db.refresh(nowy_dokument)
-    return nowy_dokument
+    db.refresh(nowa_polisa)
+    return nowa_polisa
 
-def pobierz_dokumenty(db: Session):
-    return db.query(models.Dokument).all()
+def pobierz_polisy(db: Session):
+    return db.query(models.Polisa).all()
