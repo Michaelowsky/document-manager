@@ -103,3 +103,12 @@ body {
     padding: 8px;
     box-sizing: border-box;
 }
+
+.inline-group {
+    display: flex;
+    gap: 20px;
+}
+
+.inline-group .form-group {
+    flex: 1;
+}

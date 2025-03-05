@@ -18,6 +18,7 @@
                 <button id="toolsButton">Produkcja</button>
                 <div class="dropdown-content">
                     <button id="addDocumentButton">Nowa Polisa</button>
+                    <button id="addPaymentButton">Płatności</button>
                 </div>
             </div>
         </div>
@@ -33,8 +34,8 @@
                 <h1>Nowa Polisa</h1>
                 <form id="document-form">
                     <div class="form-group">
-                        <label for="rodzaj_polisy">Rodzaj:</label>
-                        <select id="rodzaj_polisy" name="rodzaj_polisy" required>
+                        <label for="rodzaj">Rodzaj:</label>
+                        <select id="rodzaj" name="rodzaj" required>
                             <option value="Komunikacyjna">Komunikacyjna</option>
                             <option value="Majątkowa">Majątkowa</option>
                             <option value="Życiowa">Życiowa</option>
@@ -44,23 +45,44 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="imie">Imię:</label>
-                        <input type="text" id="imie" name="imie" required>
+                        <label for="typ">Typ:</label>
+                        <select id="typ" name="typ" required>
+                            <option value="Polisa">Polisa</option>
+                        </select>
                     </div>
 
                     <div class="form-group">
-                        <label for="nazwisko">Nazwisko:</label>
-                        <input type="text" id="nazwisko" name="nazwisko" required>
+                        <label for="opiekun">Opiekunowie:</label>
+                        <select id="opiekun" name="opiekun" required>
+                            <option value="alicjat">Alicja Tokarczyk</option>
+                        </select>
                     </div>
 
                     <div class="form-group">
-                        <label for="numer_polisy">Numer polisy:</label>
-                        <input type="text" id="numer_polisy" name="numer_polisy" required>
+                        <label for="ubezpieczajacy">Ubezpieczający:</label>
+                        <input type="text" id="ubezpieczajacy" name="ubezpieczajacy" required>
                     </div>
 
-                    <div class="form-group">
-                        <label for="towarzystwo">Nazwa Towarzystwa Ubezpieczeniowego:</label>
-                        <input type="text" id="towarzystwo" name="towarzystwo" required>
+                    <div class="form-group inline-group">
+                        <div class="form-group">
+                            <label for="numer_ubezpieczenia">Numer polisy:</label>
+                            <input type="text" id="numer_ubezpieczenia" name="numer_ubezpieczenia" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="towarzystwo">Nazwa Towarzystwa Ubezpieczeniowego:</label>
+                            <input type="text" id="towarzystwo" name="towarzystwo" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group inline-group">
+                        <div class="form-group">
+                            <label for="przedmiot_ubezpieczenia">Przedmiot ubezpieczenia:</label>
+                            <input type="text" id="przedmiot_ubezpieczenia" name="przedmiot_ubezpieczenia" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="skladka">Kwota składki:</label>
+                            <input type="text" id="skladka" name="skladka" required>
+                        </div>
                     </div>
 
                     <div class="form-group">
@@ -69,17 +91,30 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="data_zakonczenia">Data zakończenia:</label>
-                        <input type="date" id="data_zakonczenia" name="data_zakonczenia" required>
+                        <label for="ochrona_od">Data rozpoczęcia:</label>
+                        <input type="date" id="ochrona_od" name="ochrona_od" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="ochrona_do">Data zakończenia:</label>
+                        <input type="date" id="ochrona_do" name="ochrona_do" required>
                     </div>
 
                     <button type="submit">Dodaj dokument</button>
                 </form>
                 <div id="response"></div>
             </div>
+
+            <div id="addPaymentContent" class="content">
+                <h1>Nowa Płatność</h1>
+                <form id="payment-form">
+                    <!-- Dodaj odpowiednie pola formularza dla płatności -->
+                </form>
+                <div id="paymentResponse"></div>
+            </div>
         </div>
     </div>
 
-    <script src="/static/js/script.js"></script>
+    <script src="/static/js/script.js?v=1.0"></script>
 </body>
 </html>
