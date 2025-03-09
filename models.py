@@ -16,3 +16,18 @@ class Polisa(Base):
     ochrona_do = Column(Date)
     skladka = Column(Numeric)
     opiekun = Column(String, index=True)
+
+class Firma(Base):
+    __tablename__ = "firmy"
+
+    id = Column(Integer, primary_key=True, index=True)
+    nip = Column(String, index=True)
+    regon = Column(String, index=True)
+    ubezpieczajacy = Column(String, index=True)
+
+class Ubezpieczony(Base):
+    __tablename__ = "ubezpieczeni"
+
+    id = Column(Integer, primary_key=True, index=True)
+    numer_polisy = Column(String, index=True)
+    ubezpieczony = Column(String, index=True)
