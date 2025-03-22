@@ -1,6 +1,8 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import or_
+from sqlalchemy import or_, Date
 import models, schemas
+from datetime import datetime
+from sqlalchemy.sql import cast
 
 def dodaj_polise(db: Session, polisa: schemas.PolisaCreate):
     nowa_polisa = models.Polisa(**polisa.dict())
@@ -34,7 +36,7 @@ def dodaj_ubezpieczonego(db: Session, ubezpieczony: schemas.UbezpieczonyCreate):
     db.refresh(nowy_ubezpieczony)
     return nowy_ubezpieczony
 
-def wyszukaj_polisy(db: Session, ubezpieczajacy: str = None, ubezpieczony: str = None, nip: str = None, regon: str = None, przedmiot: str = None):
+def wyszukaj_polisy(db: Session, ubezpieczajacy: str = None, ubezpieczony: str = None, nip: str = None, regon: str = None, przedmiot: str = None, numer_polisy: str = None, data_zawarcia_od: str = None, data_zawarcia_do: str = None, ochrona_od: str = None, ochrona_do: str = None, zakonczenie_od: str = None, zakonczenie_do: str = None, limit: int = 10, offset: int = 0):
     query = db.query(models.Polisa)
     
     if ubezpieczajacy:
@@ -58,4 +60,41 @@ def wyszukaj_polisy(db: Session, ubezpieczajacy: str = None, ubezpieczony: str =
     if przedmiot:
         query = query.filter(models.Polisa.przedmiot_ubezpieczenia.like(f"%{przedmiot}%"))
     
-    return query.all()
+    if numer_polisy:
+        query = query.filter(models.Polisa.numer_ubezpieczenia.like(f"%{numer_polisy}%"))
+    
+    if data_zawarcia_od:
+        data_zawarcia_od = datetime.strptime(data_zawarcia_od, '%Y-%m-%d').date()
+    if data_zawarcia_do:
+        data_zawarcia_do = datetime.strptime(data_zawarcia_do, '%Y-%m-%d').date()
+    if ochrona_od:
+        ochrona_od = datetime.strptime(ochrona_od, '%Y-%m-%d').date()
+    if ochrona_do:
+        ochrona_do = datetime.strptime(ochrona_do, '%Y-%m-%d').date()
+    if zakonczenie_od:
+        zakonczenie_od = datetime.strptime(zakonczenie_od, '%Y-%m-%d').date()
+    if zakonczenie_do:
+        zakonczenie_do = datetime.strptime(zakonczenie_do, '%Y-%m-%d').date()
+    
+    if data_zawarcia_od and data_zawarcia_do:
+        query = query.filter(models.Polisa.data_zawarcia.between(data_zawarcia_od, data_zawarcia_do))
+    elif data_zawarcia_od:
+        query = query.filter(models.Polisa.data_zawarcia >= data_zawarcia_od)
+    elif data_zawarcia_do:
+        query = query.filter(models.Polisa.data_zawarcia <= data_zawarcia_do)
+    
+    if ochrona_od and ochrona_do:
+        query = query.filter(models.Polisa.ochrona_od.between(ochrona_od, ochrona_do))
+    elif ochrona_od:
+        query = query.filter(models.Polisa.ochrona_od >= ochrona_od)
+    elif ochrona_do:
+        query = query.filter(models.Polisa.ochrona_od <= ochrona_do)
+    
+    if zakonczenie_od and zakonczenie_do:
+        query = query.filter(models.Polisa.ochrona_do.between(zakonczenie_od, zakonczenie_do))
+    elif zakonczenie_od:
+        query = query.filter(models.Polisa.ochrona_do >= zakonczenie_od)
+    elif zakonczenie_do:
+        query = query.filter(models.Polisa.ochrona_do <= zakonczenie_do)
+    
+    return query.offset(offset).limit(limit).all()

@@ -93,6 +93,7 @@ body {
 
 #search-form .form-group-inline {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     width: 100%;
     max-width: 1200px;
@@ -101,9 +102,15 @@ body {
 
 #search-form .form-group {
     flex: 1;
-    margin: 0 10px;
+    margin: 5px; /* Zmniejsz margines, aby pola były bliżej siebie */
+    min-width: 150px; /* Zmniejsz minimalną szerokość, aby pola były bardziej kompaktowe */
 }
 
+#search-form input {
+    width: 100%;
+    padding: 6px; /* Zmniejsz padding, aby pola były bardziej kompaktowe */
+    box-sizing: border-box;
+}
 #search-form label {
     display: block;
     text-align: center;
@@ -200,4 +207,25 @@ input[type="radio"] {
 label[for="osoba_prywatna"], label[for="firma"] {
     font-size: 18px; /* Zwiększ rozmiar czcionki etykiet */
     margin-right: 20px; /* Dodaj odstęp po prawej stronie */
+}
+
+#show-more-button, #generate-report-button {
+    display: inline-block;
+    margin: 20px 10px; /* Dodaj margines wokół przycisków */
+    padding: 15px 30px; /* Zwiększ rozmiar przycisku */
+    font-size: 18px; /* Zwiększ rozmiar czcionki */
+    background-color: grey;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px; /* Dodaj zaokrąglone rogi */
+}
+
+#show-more-button:hover, #generate-report-button:hover {
+    background-color: #777; /* Zmiana koloru przycisku po najechaniu */
+}
+
+.button-container {
+    text-align: center; /* Wyśrodkuj przyciski */
+    margin-top: 20px; /* Dodaj margines górny */
 }

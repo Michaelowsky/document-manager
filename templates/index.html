@@ -11,7 +11,7 @@
         <!-- Pasek boczny -->
         <div class="sidebar">
             <img src="/static/images/logo.png" alt="Logo firmy" class="logo">
-            <button id="homeButton">Ekran główny</button>
+            <button id="mainScreenButton">Ekran Główny</button>
             <div class="dropdown">
                 <button id="toolsButton">Produkcja</button>
                 <div class="dropdown-content">
@@ -27,39 +27,68 @@
                 <h1>Archiwum</h1>
                 
                 <!-- Formularz wyszukiwania -->
-                <div id="search-form">
-                    <form id="search-form">
-                        <div class="form-group-inline">
-                            <div class="form-group">
-                                <label for="search-ubezpieczajacy">Ubezpieczający:</label>
-                                <input type="text" id="search-ubezpieczajacy" name="search-ubezpieczajacy">
-                            </div>
-                            <div class="form-group">
-                                <label for="search-ubezpieczony">Ubezpieczony:</label>
-                                <input type="text" id="search-ubezpieczony" name="search-ubezpieczony">
-                            </div>
-                            <div class="form-group">
-                                <label for="search-przedmiot">Przedmiot:</label>
-                                <input type="text" id="search-przedmiot" name="search-przedmiot">
-                            </div>
-                            <div class="form-group">
-                                <label for="search-nip">NIP:</label>
-                                <input type="text" id="search-nip" name="search-nip">
-                            </div>
-                            <div class="form-group">
-                                <label for="search-regon">REGON:</label>
-                                <input type="text" id="search-regon" name="search-regon">
-                            </div>
+                <form id="search-form">
+                    <div class="form-group-inline">
+                        <!-- Pierwszy rząd -->
+                        <div class="form-group">
+                            <label for="search-ubezpieczajacy">Ubezpieczający:</label>
+                            <input type="text" id="search-ubezpieczajacy" name="search-ubezpieczajacy">
                         </div>
                         <div class="form-group">
-                            <button type="submit" class="search-button">Szukaj</button>
+                            <label for="search-ubezpieczony">Ubezpieczony:</label>
+                            <input type="text" id="search-ubezpieczony" name="search-ubezpieczony">
                         </div>
-                    </form>
-                </div>
+                        <div class="form-group">
+                            <label for="search-przedmiot">Przedmiot:</label>
+                            <input type="text" id="search-przedmiot" name="search-przedmiot">
+                        </div>
+                        <div class="form-group">
+                            <label for="search-data-zawarcia-od">Data Zawarcia (od):</label>
+                            <input type="date" id="search-data-zawarcia-od" name="search-data-zawarcia-od">
+                        </div>
+                        <div class="form-group">
+                            <label for="search-ochrona-od">Roz. Ochrony (od):</label>
+                            <input type="date" id="search-ochrona-od" name="search-ochrona-od">
+                        </div>
+                        <div class="form-group">
+                            <label for="search-zakonczenie-od">Zak. Ochrony (od):</label>
+                            <input type="date" id="search-zakonczenie-od" name="search-zakonczenie-od">
+                        </div>
+                    </div>
+                    <div class="form-group-inline">
+                        <!-- Drugi rząd -->
+                        <div class="form-group">
+                            <label for="search-numer-polisy">Numer Polisy:</label>
+                            <input type="text" id="search-numer-polisy" name="search-numer-polisy">
+                        </div>
+                        <div class="form-group">
+                            <label for="search-nip">NIP:</label>
+                            <input type="text" id="search-nip" name="search-nip">
+                        </div>
+                        <div class="form-group">
+                            <label for="search-regon">REGON:</label>
+                            <input type="text" id="search-regon" name="search-regon">
+                        </div>
+                        <div class="form-group">
+                            <label for="search-data-zawarcia-do">Data Zawarcia (do):</label>
+                            <input type="date" id="search-data-zawarcia-do" name="search-data-zawarcia-do">
+                        </div>
+                        <div class="form-group">
+                            <label for="search-ochrona-do">Roz. Ochrony (do):</label>
+                            <input type="date" id="search-ochrona-do" name="search-ochrona-do">
+                        </div>
+                        <div class="form-group">
+                            <label for="search-zakonczenie-do">Zak. Ochrony (do):</label>
+                            <input type="date" id="search-zakonczenie-do" name="search-zakonczenie-do">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="search-button">Szukaj</button>
+                    </div>
+                </form>
 
                 <!-- Tabela wyników wyszukiwania -->
                 <div id="wyniki-wyszukiwania" style="display: none;">
-                    <h2>Wyniki wyszukiwania:</h2>
                     <table id="lista-wynikow">
                         <thead>
                             <tr>
@@ -74,6 +103,10 @@
                             <!-- Wiersze tabeli będą dodawane dynamicznie przez JavaScript -->
                         </tbody>
                     </table>
+                    <div class="button-container">
+                        <button id="show-more-button" style="display: none;">Pokaż więcej</button>
+                        <button id="generate-report-button" style="display: none;">Wygeneruj zestawienie</button>
+                    </div>
                 </div>
 
                 <div id="pierwsze-pozycje">
