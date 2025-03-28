@@ -233,10 +233,17 @@
             <div id="addPaymentContent" class="content">
                 <h1>Nowa Płatność</h1>
                 <form id="payment-form">
-                    <!-- Dodaj odpowiednie pola formularza dla płatności -->
+                    <div class="form-group">
+                        <label for="search-numer-polisy-payment">Numer Polisy:</label>
+                        <input type="text" id="search-numer-polisy-payment" name="search-numer-polisy-payment" class="small-input centered-input">
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="search-button large-button">Szukaj</button>
+                    </div>
                 </form>
                 <div id="paymentResponse"></div>
             </div>
+
         </div>
     </div>
 

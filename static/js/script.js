@@ -405,3 +405,59 @@ document.getElementById('generate-report-button').addEventListener('click', asyn
         alert('Błąd podczas generowania zestawienia.');
     }
 });
+
+
+document.getElementById('payment-form').addEventListener('submit', async (e) => {
+    e.preventDefault(); // Zapobiegamy domyślnej akcji formularza
+
+    console.log('Obsługiwany formularz: payment-form');
+
+    const inputElement = document.getElementById('search-numer-polisy-payment');
+    console.log('Input Element:', inputElement); // Sprawdź, czy element został znaleziony
+
+    const numerPolisy = inputElement ? inputElement.value.trim() : '';
+    console.log('Numer Polisy:', numerPolisy); // Sprawdź wartość pola tekstowego
+
+    if (!numerPolisy) {
+        alert('Proszę wpisać numer polisy.');
+        return;
+    }
+
+    const queryParams = { numer_polisy: numerPolisy };
+    const queryString = new URLSearchParams(queryParams).toString();
+    console.log('Query String:', queryString); // Dodaj logowanie
+
+    const response = await fetch(`http://127.0.0.1:8000/wyszukaj?${queryString}`);
+    const data = await response.json();
+    console.log('Response Data:', data); // Dodaj logowanie
+
+    const paymentResponseDiv = document.getElementById('paymentResponse');
+    if (response.ok) {
+        paymentResponseDiv.innerHTML = `
+            <table>
+                <thead>
+                    <tr>
+                        <th>Numer Polisy</th>
+                        <th>Ubezpieczający</th>
+                        <th>Przedmiot Ubezpieczenia</th>
+                        <th>Data Zawarcia</th>
+                        <th>Data Zakończenia</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${data.map(pozycja => `
+                        <tr>
+                            <td>${pozycja.numer_ubezpieczenia}</td>
+                            <td>${pozycja.ubezpieczajacy}</td>
+                            <td>${pozycja.przedmiot_ubezpieczenia}</td>
+                            <td>${pozycja.data_zawarcia}</td>
+                            <td>${pozycja.ochrona_do}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+    } else {
+        paymentResponseDiv.innerHTML = `<p>Błąd: ${data.detail}</p>`;
+    }
+});

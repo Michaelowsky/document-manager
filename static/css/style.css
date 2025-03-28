@@ -229,3 +229,54 @@ label[for="osoba_prywatna"], label[for="firma"] {
     text-align: center; /* Wyśrodkuj przyciski */
     margin-top: 20px; /* Dodaj margines górny */
 }
+
+/* Stylizacja formularza płatności */
+#payment-form .form-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+#payment-form .form-group label {
+    font-size: 18px;
+    margin-bottom: 5px;
+}
+
+#payment-form .form-group input.small-input {
+    width: 50%; /* Zmniejsz szerokość pola tekstowego */
+    padding: 8px;
+    box-sizing: border-box;
+    text-align: center; /* Wyśrodkuj tekst w polu */
+}
+
+#payment-form .form-group input.centered-input {
+    margin: 0 auto; /* Wyśrodkuj pole tekstowe */
+}
+
+#payment-form .form-group button.large-button {
+    padding: 15px 30px; /* Powiększ przycisk */
+    font-size: 18px; /* Zwiększ rozmiar czcionki */
+    background-color: grey;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px; /* Dodaj zaokrąglone rogi */
+}
+
+#payment-form .form-group button.large-button:hover {
+    background-color: #777; /* Zmiana koloru przycisku po najechaniu */
+}
+
+#paymentResponse table {
+    margin: 0 auto; /* Wyśrodkowanie tabeli na stronie */
+    text-align: center; /* Wyśrodkowanie tekstu w komórkach */
+    border-collapse: collapse; /* Ujednolicenie granic tabeli */
+    width: 80%; /* Opcjonalnie ustaw szerokość tabeli */
+}
+
+#paymentResponse th, #paymentResponse td {
+    padding: 10px; /* Dodaj odstępy wewnętrzne */
+    border: 1px solid #ddd; /* Dodaj obramowanie */
+    text-align: center; /* Wyśrodkowanie tekstu w komórkach */
+}
