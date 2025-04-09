@@ -98,3 +98,20 @@ def wyszukaj_polisy(db: Session, ubezpieczajacy: str = None, ubezpieczony: str =
         query = query.filter(models.Polisa.ochrona_do <= zakonczenie_do)
     
     return query.offset(offset).limit(limit).all()
+
+def sprawdz_platnosci(db: Session, numer_polisy: str):
+    try:
+        print(f"Sprawdzanie płatności dla numeru polisy: {numer_polisy}")
+        wynik = db.query(models.Platnosci).filter(models.Platnosci.numer_polisy == numer_polisy).first()
+        print(f"Wynik zapytania: {wynik}")
+        return wynik
+    except Exception as e:
+        print(f"Błąd w funkcji sprawdz_platnosci: {e}")
+        return None
+
+def zapisz_platnosci(db: Session, platnosci: schemas.PlatnosciCreate):
+    nowa_platnosc = models.Platnosci(**platnosci.dict())
+    db.add(nowa_platnosc)
+    db.commit()
+    db.refresh(nowa_platnosc)
+    return nowa_platnosc

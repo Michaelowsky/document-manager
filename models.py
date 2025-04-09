@@ -31,3 +31,10 @@ class Ubezpieczony(Base):
     id = Column(Integer, primary_key=True, index=True)
     numer_polisy = Column(String, index=True)
     ubezpieczony = Column(String, index=True)
+
+class Platnosci(Base):
+    __tablename__ = "platnosci"
+
+    id = Column(Integer, primary_key=True, index=True)
+    numer_polisy = Column(String, index=True, unique=True)
+    platnosci = Column(String)  # Format: "data_platnosci, kwota, data_zaplacenia; ..."

@@ -1,4 +1,17 @@
 document.getElementById('mainScreenButton').addEventListener('click', function() {
+    console.log('Kliknięto przycisk Ekran Główny');
+
+    // Ukryj wszystkie sekcje
+    document.querySelectorAll('.content').forEach(section => {
+        section.classList.remove('active');
+        section.style.display = 'none';
+    });
+
+    // Pokaż ekran główny
+    const homeContent = document.getElementById('homeContent');
+    homeContent.classList.add('active');
+    homeContent.style.display = 'block';
+
     document.getElementById('homeContent').classList.add('active');
     document.getElementById('addDocumentContent').classList.remove('active');
     document.getElementById('addPaymentContent').classList.remove('active');
@@ -17,15 +30,43 @@ document.getElementById('mainScreenButton').addEventListener('click', function()
 });
 
 document.getElementById('addDocumentButton').addEventListener('click', function() {
+
+    console.log('Kliknięto przycisk Dodaj dokument');
+
+    // Ukryj wszystkie sekcje
+    document.querySelectorAll('.content').forEach(section => {
+        section.classList.remove('active');
+        section.style.display = 'none'; // Ukryj sekcje zawartości
+        console.log(`Ukryto sekcję: ${section.id}`);
+    });
+
+    // Pokaż sekcję "Dodaj dokument"
+    const addDocumentContent = document.getElementById('addDocumentContent');
+    addDocumentContent.classList.add('active');
+    addDocumentContent.style.display = 'block'; // Ustaw widoczność
+    console.log(`Pokazano sekcję: ${addDocumentContent.id}`);
+
     document.getElementById('homeContent').classList.remove('active');
     document.getElementById('addDocumentContent').classList.add('active');
     document.getElementById('addPaymentContent').classList.remove('active');
 });
 
-document.getElementById('addPaymentButton').addEventListener('click', function() {
-    document.getElementById('homeContent').classList.remove('active');
-    document.getElementById('addDocumentContent').classList.remove('active');
-    document.getElementById('addPaymentContent').classList.add('active');
+document.getElementById("addPaymentButton").addEventListener("click", function () {
+    console.log("Kliknięto przycisk Dodanie płatności");
+
+    // Ukryj wszystkie sekcje
+    document.querySelectorAll(".content").forEach(section => {
+        section.classList.remove("active");
+        section.style.display = "none";
+    });
+
+    // Pokaż sekcję "Dodanie płatności"
+    const addPaymentContent = document.getElementById("addPaymentContent");
+    addPaymentContent.classList.add("active");
+    addPaymentContent.style.display = "block";
+
+    // Wyczyść pole numeru polisy
+    document.getElementById("search-numer-polisy-payment").value = "";
 });
 
 // Obsługa dynamicznego wyświetlania pól NIP i REGON oraz ubezpieczającego
@@ -446,7 +487,7 @@ document.getElementById('payment-form').addEventListener('submit', async (e) => 
                 </thead>
                 <tbody>
                     ${data.map(pozycja => `
-                        <tr>
+                        <tr class="clickable-row" data-numer-polisy="${pozycja.numer_ubezpieczenia}">
                             <td>${pozycja.numer_ubezpieczenia}</td>
                             <td>${pozycja.ubezpieczajacy}</td>
                             <td>${pozycja.przedmiot_ubezpieczenia}</td>
@@ -457,7 +498,315 @@ document.getElementById('payment-form').addEventListener('submit', async (e) => 
                 </tbody>
             </table>
         `;
+
+        // Dodaj obsługę kliknięcia dla każdego wiersza
+        document.querySelectorAll('.clickable-row').forEach(row => {
+            row.addEventListener('click', (e) => {
+                const numerPolisy = row.getAttribute('data-numer-polisy');
+                console.log('Kliknięto wiersz, numer polisy:', numerPolisy); // Logowanie
+                przejdzDoPaneluPolisy(numerPolisy);
+            });
+        });
     } else {
         paymentResponseDiv.innerHTML = `<p>Błąd: ${data.detail}</p>`;
     }
 });
+
+
+
+function przejdzDoPaneluPolisy(numerPolisy) {
+    console.log('Przejście do panelu polisy:', numerPolisy);
+
+    // Ukryj wszystkie sekcje
+    document.querySelectorAll('.content').forEach(section => {
+        section.classList.remove('active');
+        section.style.display = 'none';
+    });
+
+    // Pokaż sekcję "panelPolisy"
+    const panelPolisy = document.getElementById('panelPolisy');
+    panelPolisy.classList.add('active');
+    panelPolisy.style.display = 'block';
+
+    // Ustaw tytuł
+    const panelPolisyTitle = document.getElementById('panelPolisyTitle');
+    panelPolisyTitle.innerText = `Numer Polisy: ${numerPolisy}`;
+
+    // Sprawdź, czy polisa istnieje w tabeli "platnosci"
+    const encodedNumerPolisy = encodeURIComponent(numerPolisy); // Zakodowanie numeru polisy
+    sprawdzPlatnosci(encodedNumerPolisy);
+
+    // Pobierz dane polisy z backendu
+    fetch(`/wyszukaj?numer_polisy=${encodedNumerPolisy}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.length > 0) {
+                const polisa = data[0]; // Zakładamy, że numer polisy jest unikalny
+                const formContainer = document.getElementById('formContainer');
+                formContainer.innerHTML = `
+                    <table>
+                        <tr>
+                            <th>Ubezpieczający</th>
+                            <td>${polisa.ubezpieczajacy}</td>
+                        </tr>
+                        <tr>
+                            <th>Przedmiot ubezpieczenia</th>
+                            <td>${polisa.przedmiot_ubezpieczenia}</td>
+                        </tr>
+                        <tr>
+                            <th>Data rozpoczęcia</th>
+                            <td>${polisa.ochrona_od}</td>
+                        </tr>
+                        <tr>
+                            <th>Data zakończenia</th>
+                            <td>${polisa.ochrona_do}</td>
+                        </tr>
+                    </table>
+                `;
+            } else {
+                alert('Nie znaleziono danych dla tej polisy.');
+            }
+        })
+        .catch(error => {
+            console.error('Błąd podczas pobierania danych polisy:', error);
+            alert('Wystąpił błąd podczas pobierania danych polisy.');
+        });
+}
+
+async function sprawdzPlatnosci(numerPolisy) {
+    try {
+        console.log(`Sprawdzanie płatności dla numeru polisy: ${numerPolisy}`);
+        const encodedNumerPolisy = encodeURIComponent(numerPolisy); // Zakodowanie numeru polisy
+        const response = await fetch(`/platnosci?numer_polisy=${encodedNumerPolisy}`);
+        if (!response.ok) {
+            throw new Error(`Błąd serwera: ${response.status}`);
+        }
+        const data = await response.json();
+        console.log("Odpowiedź z backendu:", data);
+
+        const formContainer = document.getElementById("formContainer");
+        const tableContainer = document.getElementById("tableContainer");
+        const ratContainer = document.getElementById("ratContainer");
+        const savePaymentsButton = document.getElementById("savePaymentsButton");
+
+        if (data.exists) {
+            formContainer.innerHTML = `<p style="color: red;">Polisa już dodana do tabeli płatności.</p>`;
+            tableContainer.innerHTML = ""; // Wyczyść tabelę
+            ratContainer.style.display = "none"; // Ukryj pole do wpisania liczby rat
+            savePaymentsButton.style.display = "none"; // Ukryj przycisk zapisywania
+            console.log("Polisa już istnieje w tabeli płatności.");
+        } else {
+            formContainer.innerHTML = `<p>Polisa nie istnieje w tabeli płatności. Wprowadź dane poniżej:</p>`;
+            ratContainer.style.display = "block"; // Pokaż pole do wpisania liczby rat
+            tableContainer.innerHTML = ""; // Wyczyść tabelę
+            savePaymentsButton.style.display = "none"; // Ukryj przycisk zapisywania
+            console.log("Polisa nie istnieje w tabeli płatności.");
+        }
+    } catch (error) {
+        console.error("Błąd podczas sprawdzania płatności:", error);
+        alert("Wystąpił błąd podczas sprawdzania płatności. Spróbuj ponownie później.");
+    }
+}
+
+function pokazFormularzRat(numerPolisy) {
+    const formContainer = document.getElementById("paymentResponse");
+    formContainer.innerHTML = `
+        <label for="liczbaRat">Podaj liczbę rat:</label>
+        <input type="number" id="liczbaRat" min="1" />
+        <button onclick="generujTabeleRat('${numerPolisy}')">Generuj tabelę</button>
+    `;
+}
+
+function generujTabeleRat() {
+    const liczbaRat = document.getElementById("liczbaRat").value;
+    if (!liczbaRat || liczbaRat <= 0) {
+        alert("Podaj poprawną liczbę rat.");
+        return;
+    }
+
+    const tableContainer = document.getElementById("tableContainer");
+    let tableHTML = `
+        <table>
+            <thead>
+                <tr>
+                    <th>Data składki</th>
+                    <th>Kwota</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+    for (let i = 0; i < liczbaRat; i++) {
+        tableHTML += `
+            <tr>
+                <td><input type="date" class="dataPlatnosci" /></td>
+                <td><input type="number" class="kwotaPlatnosci" /></td>
+            </tr>
+        `;
+    }
+    tableHTML += `
+            </tbody>
+        </table>
+    `;
+    tableContainer.innerHTML = tableHTML;
+
+    // Pokaż przycisk zapisywania płatności
+    document.getElementById("savePaymentsButton").style.display = "block";
+}
+
+async function zapiszPlatnosci() {
+    const dataPlatnosci = document.querySelectorAll(".dataPlatnosci");
+    const kwotaPlatnosci = document.querySelectorAll(".kwotaPlatnosci");
+    let platnosci = [];
+
+    for (let i = 0; i < dataPlatnosci.length; i++) {
+        const data = dataPlatnosci[i].value;
+        const kwota = kwotaPlatnosci[i].value;
+        if (!data || !kwota) {
+            alert("Uzupełnij wszystkie pola w tabeli.");
+            return;
+        }
+        platnosci.push(`${data}, ${kwota}, ""`); // Faktyczna data zapłaty jest pusta
+    }
+
+    const platnosciString = platnosci.join("; ");
+    console.log("Zapisane płatności:", platnosciString);
+
+    // Pobierz numer polisy z tytułu
+    const numerPolisy = document.getElementById("panelPolisyTitle").innerText.split(": ")[1];
+
+    // Wyślij dane do backendu
+    const response = await fetch("/platnosci/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            numer_polisy: numerPolisy,
+            platnosci: platnosciString,
+        }),
+    });
+
+    const result = await response.json();
+    if (response.ok) {
+        alert("Płatności zapisane pomyślnie.");
+
+        // Przejdź na ekran główny
+        przejdzDoEkranuGlownego();
+    } else {
+        alert(`Wystąpił błąd: ${result.detail}`);
+    }
+}
+
+async function sprawdzPlatnosci(numerPolisy) {
+    try {
+        console.log(`Sprawdzanie płatności dla numeru polisy: ${numerPolisy}`);
+        const queryParams = new URLSearchParams({ numer_polisy: numerPolisy }).toString();
+        const response = await fetch(`/platnosci?${queryParams}`);
+        if (!response.ok) {
+            throw new Error(`Błąd serwera: ${response.status}`);
+        }
+        const data = await response.json();
+        console.log("Odpowiedź z backendu:", data);
+
+        const formContainer = document.getElementById("formContainer");
+        const tableContainer = document.getElementById("tableContainer");
+        const ratContainer = document.getElementById("ratContainer");
+        const savePaymentsButton = document.getElementById("savePaymentsButton");
+
+        if (data.exists) {
+            // Wyświetl tabelę płatności
+            const platnosci = data.platnosci.split(";").filter(p => p.trim() !== "");
+            let tableHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Data Płatności</th>
+                            <th>Składka</th>
+                            <th>Zapłacona Składka</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            platnosci.forEach((platnosc, index) => {
+                const [dataPlatnosci, skladka, zaplacona] = platnosc.split(",");
+                tableHTML += `
+                    <tr>
+                        <td>${dataPlatnosci}</td>
+                        <td>${skladka}</td>
+                        <td>
+                            <input type="date" class="zaplaconaPlatnosc" data-index="${index}" value="${zaplacona || ""}" />
+                        </td>
+                    </tr>
+                `;
+            });
+            tableHTML += `
+                    </tbody>
+                </table>
+                <button onclick="zapiszAktualizacjePlatnosci('${numerPolisy}')">Zapisz zmiany</button>
+            `;
+            tableContainer.innerHTML = tableHTML;
+            ratContainer.style.display = "none";
+            savePaymentsButton.style.display = "none";
+        } else {
+            formContainer.innerHTML = `<p>Polisa nie istnieje w tabeli płatności. Wprowadź dane poniżej:</p>`;
+            ratContainer.style.display = "block";
+            tableContainer.innerHTML = "";
+            savePaymentsButton.style.display = "none";
+        }
+    } catch (error) {
+        console.error("Błąd podczas sprawdzania płatności:", error);
+        alert("Wystąpił błąd podczas sprawdzania płatności. Spróbuj ponownie później.");
+    }
+}
+
+function przejdzDoEkranuGlownego() {
+    console.log("Przejście na ekran główny");
+
+    // Ukryj wszystkie sekcje
+    document.querySelectorAll(".content").forEach(section => {
+        section.classList.remove("active");
+        section.style.display = "none";
+    });
+
+    // Pokaż ekran główny
+    const homeContent = document.getElementById("homeContent");
+    homeContent.classList.add("active");
+    homeContent.style.display = "block";
+
+    // Resetuj formularz wyszukiwania
+    document.getElementById("search-form").reset();
+
+    // Pobierz pierwsze pozycje
+    pobierzPierwszePozycje();
+}
+
+async function zapiszAktualizacjePlatnosci(numerPolisy) {
+    const zaplaconePlatnosci = document.querySelectorAll(".zaplaconaPlatnosc");
+    const nowePlatnosci = {};
+
+    zaplaconePlatnosci.forEach(input => {
+        const index = input.getAttribute("data-index");
+        const value = input.value;
+        if (value) {
+            nowePlatnosci[index] = value; // Tylko zmienione wartości
+        }
+    });
+
+    console.log("Nowe płatności do zapisania:", nowePlatnosci);
+
+    const response = await fetch(`/platnosci?numer_polisy=${encodeURIComponent(numerPolisy)}`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(nowePlatnosci),
+    });
+
+    if (response.ok) {
+        alert("Płatności zaktualizowane pomyślnie.");
+        sprawdzPlatnosci(numerPolisy); // Odśwież tabelę
+    } else {
+        const result = await response.json();
+        alert(`Wystąpił błąd: ${result.detail}`);
+    }
+}

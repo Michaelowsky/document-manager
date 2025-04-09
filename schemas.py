@@ -50,3 +50,16 @@ class UbezpieczonyResponse(UbezpieczonyBase):
 
     class Config:
         orm_mode = True
+
+class PlatnosciBase(BaseModel):
+    numer_polisy: str
+    platnosci: str
+
+class PlatnosciCreate(PlatnosciBase):
+    pass
+
+class PlatnosciResponse(PlatnosciBase):
+    id: int
+
+    class Config:
+        orm_mode = True

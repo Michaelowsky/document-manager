@@ -21,7 +21,8 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center; /* Wyśrodkowanie przycisków */
-    position: fixed;
+    position: relative;
+    z-index: 10;
     left: 0;
     top: 0; /* Przenieś pasek boczny na górę */
     height: 100%; /* Ustaw wysokość na 100% */
@@ -279,4 +280,77 @@ label[for="osoba_prywatna"], label[for="firma"] {
     padding: 10px; /* Dodaj odstępy wewnętrzne */
     border: 1px solid #ddd; /* Dodaj obramowanie */
     text-align: center; /* Wyśrodkowanie tekstu w komórkach */
+}
+
+#panelPolisy {
+    display: none;
+    text-align: center;
+    padding: 20px;
+    max-width: 80%; /* Ogranicz szerokość */
+    margin: 0 auto; /* Wyśrodkuj panel */
+    position: relative; /* Upewnij się, że nie zasłania innych elementów */
+    z-index: 1; /* Ustaw odpowiedni poziom z-index */
+}
+
+#panelPolisy.active {
+    display: block;
+}
+
+#panelPolisyTitle {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: #333;
+    visibility: visible;
+    opacity: 1;
+}
+
+#panelPolisy {
+    display: none;
+    text-align: center;
+    padding: 20px;
+    max-width: 80%;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+}
+
+#panelPolisy.active {
+    display: block;
+}
+
+#formContainer table {
+    margin: 20px auto;
+    border-collapse: collapse;
+    width: 80%;
+    text-align: left;
+}
+
+#formContainer th, #formContainer td {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+#formContainer th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+    text-align: left;
+}
+
+#tableContainer table {
+    margin: 20px auto;
+    border-collapse: collapse;
+    width: 80%;
+    text-align: left;
+}
+
+#tableContainer th, #tableContainer td {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+#tableContainer th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+    text-align: left;
 }

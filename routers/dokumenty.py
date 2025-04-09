@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Request, Query
+from fastapi import APIRouter, Depends, Request, Query, HTTPException, Path, Body
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
@@ -8,6 +8,7 @@ import pandas as pd
 from fastapi.responses import FileResponse
 import os
 from datetime import datetime
+from urllib.parse import unquote
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
@@ -100,3 +101,62 @@ def generuj_zestawienie(
     df.to_excel(file_path, index=False)
     
     return {"message": f"Zestawienie zapisane jako {file_name}"}
+
+@router.get("/platnosci", response_model=dict)
+def sprawdz_polisy(
+    numer_polisy: str = Query(..., description="Numer polisy zakodowany w URL"),
+    db: Session = Depends(get_db)
+):
+    try:
+        print(f"Otrzymany numer polisy (zakodowany): {numer_polisy}")
+        numer_polisy = unquote(numer_polisy)  # Dekodowanie numeru polisy
+        print(f"Zdekodowany numer polisy: {numer_polisy}")
+
+        platnosc = crud.sprawdz_platnosci(db, numer_polisy)
+        if not platnosc:
+            print("Nie znaleziono płatności dla podanego numeru polisy.")
+            return {"exists": False}
+        print("Znaleziono płatność:", platnosc)
+        return {"exists": True, "platnosci": platnosc.platnosci}
+    except Exception as e:
+        print(f"Błąd podczas sprawdzania płatności: {e}")
+        raise HTTPException(status_code=500, detail="Wystąpił błąd podczas sprawdzania płatności.")
+
+@router.post("/platnosci/", response_model=schemas.PlatnosciResponse)
+def zapisz_platnosci(platnosci: schemas.PlatnosciCreate, db: Session = Depends(get_db)):
+    # Sprawdź, czy polisa już istnieje w tabeli "platnosci"
+    istnieje = crud.sprawdz_platnosci(db, platnosci.numer_polisy)
+    if istnieje:
+        raise HTTPException(status_code=400, detail="Polisa już posiada płatności.")
+    
+    # Zapisz nowe płatności
+    return crud.zapisz_platnosci(db, platnosci)
+
+@router.put("/platnosci", response_model=schemas.PlatnosciResponse)
+def aktualizuj_platnosci(
+    numer_polisy: str = Query(..., description="Numer polisy zakodowany w URL"),
+    nowe_platnosci: dict = Body(..., description="Nowe płatności w formacie JSON"),
+    db: Session = Depends(get_db)
+):
+    try:
+        print(f"Otrzymany numer polisy (zakodowany): {numer_polisy}")
+        numer_polisy = unquote(numer_polisy)  # Dekodowanie numeru polisy
+        print(f"Zdekodowany numer polisy: {numer_polisy}")
+
+        platnosc = crud.sprawdz_platnosci(db, numer_polisy)
+        if not platnosc:
+            raise HTTPException(status_code=404, detail="Nie znaleziono płatności dla podanego numeru polisy.")
+
+        # Aktualizacja płatności
+        aktualne_platnosci = platnosc.platnosci.split(";")
+        for i, nowa_platnosc in nowe_platnosci.items():
+            if nowa_platnosc:  # Jeśli użytkownik wpisał wartość
+                aktualne_platnosci[int(i)] = f"{aktualne_platnosci[int(i)].split(',')[0]},{aktualne_platnosci[int(i)].split(',')[1]},{nowa_platnosc}"
+
+        platnosc.platnosci = ";".join(aktualne_platnosci)
+        db.commit()
+        db.refresh(platnosc)
+        return platnosc
+    except Exception as e:
+        print(f"Błąd podczas aktualizacji płatności: {e}")
+        raise HTTPException(status_code=500, detail="Wystąpił błąd podczas aktualizacji płatności.")
