@@ -4,7 +4,7 @@ from database import Base
 class Polisa(Base):
     __tablename__ = "archiwum"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     rodzaj = Column(String, index=True)
     typ = Column(String, index=True)
     numer_ubezpieczenia = Column(String, index=True)
@@ -36,5 +36,6 @@ class Platnosci(Base):
     __tablename__ = "platnosci"
 
     id = Column(Integer, primary_key=True, index=True)
+    nazwa_towarzystwa = Column(String, nullable=False)
     numer_polisy = Column(String, index=True, unique=True)
-    platnosci = Column(String)  # Format: "data_platnosci, kwota, data_zaplacenia; ..."
+    platnosci = Column(String) 

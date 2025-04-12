@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Request, Query, HTTPException, Path, Bod
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
-import crud, schemas
+import crud, schemas, re, models
 from database import get_db
 import pandas as pd
 from fastapi.responses import FileResponse
@@ -20,9 +20,12 @@ def dodaj_polise(polisa: schemas.PolisaCreate, db: Session = Depends(get_db)):
     return crud.dodaj_polise(db, polisa)
 
 # Endpoint do pobierania polis
-@router.get("/polisy/", response_model=list[schemas.PolisaResponse])
-def pobierz_polisy(db: Session = Depends(get_db)):
-    return crud.pobierz_polisy(db)
+@router.get("/polisy", response_model=schemas.PolisaResponse)
+def pobierz_polisy(numer_polisy: str = Query(..., description="Numer polisy zakodowany w URL"), db: Session = Depends(get_db)):
+    polisa = db.query(models.Polisa).filter(models.Polisa.numer_ubezpieczenia == numer_polisy).first()
+    if not polisa:
+        raise HTTPException(status_code=404, detail="Nie znaleziono polisy o podanym numerze.")
+    return polisa
 
 # Endpoint do dodawania firmy
 @router.post("/dodaj_firme/")
@@ -34,7 +37,7 @@ def dodaj_firme(firma: schemas.FirmaCreate, db: Session = Depends(get_db)):
 @router.get("/pierwsze_pozycje/", response_model=list[schemas.PolisaResponse])
 def pobierz_pierwsze_pozycje(db: Session = Depends(get_db)):
     pozycje = crud.pobierz_pierwsze_pozycje(db)
-    print("Pobrane pierwsze pozycje:", pozycje)  # Dodaj logowanie
+    print("Pobrane pierwsze pozycje:", pozycje)
     return pozycje
 
 # Endpoint do dodawania ubezpieczonego
@@ -66,6 +69,7 @@ def wyszukaj_polisy(
     print("Pobrane wyniki wyszukiwania:", wyniki)  # Dodaj logowanie
     return wyniki
 
+# Endpoint do pobierania generowania zestawienia
 @router.post("/generuj_zestawienie/")
 def generuj_zestawienie(
     ubezpieczajacy: str = None,
@@ -102,6 +106,7 @@ def generuj_zestawienie(
     
     return {"message": f"Zestawienie zapisane jako {file_name}"}
 
+# Endpoint do sprawdzania polisy
 @router.get("/platnosci", response_model=dict)
 def sprawdz_polisy(
     numer_polisy: str = Query(..., description="Numer polisy zakodowany w URL"),
@@ -109,6 +114,7 @@ def sprawdz_polisy(
 ):
     try:
         print(f"Otrzymany numer polisy (zakodowany): {numer_polisy}")
+
         numer_polisy = unquote(numer_polisy)  # Dekodowanie numeru polisy
         print(f"Zdekodowany numer polisy: {numer_polisy}")
 
@@ -116,24 +122,49 @@ def sprawdz_polisy(
         if not platnosc:
             print("Nie znaleziono płatności dla podanego numeru polisy.")
             return {"exists": False}
-        print("Znaleziono płatność:", platnosc)
+
+        # Walidacja danych płatności
+        if not platnosc.platnosci or platnosc.platnosci.strip() == "":
+            print("Brak danych płatności dla tej polisy.")
+            return {"exists": True, "platnosci": ""}
+
+        platnosci = platnosc.platnosci.split(";")
+        poprawne_platnosci = []
+        for p in platnosci:
+            try:
+                data_skladki, skladka, data_zaplacenia, kwota_zaplacenia = p.split(",")
+                poprawne_platnosci.append(f"{data_skladki},{skladka},{data_zaplacenia},{kwota_zaplacenia}")
+            except ValueError as e:
+                print(f"Błąd podczas przetwarzania płatności: {p}, błąd: {e}")
+                continue
+
+        platnosc.platnosci = ";".join(poprawne_platnosci)
         return {"exists": True, "platnosci": platnosc.platnosci}
     except Exception as e:
         print(f"Błąd podczas sprawdzania płatności: {e}")
         raise HTTPException(status_code=500, detail="Wystąpił błąd podczas sprawdzania płatności.")
-
+    
+# Endpoint do zapisywania płatności
 @router.post("/platnosci/", response_model=schemas.PlatnosciResponse)
 def zapisz_platnosci(platnosci: schemas.PlatnosciCreate, db: Session = Depends(get_db)):
-    # Sprawdź, czy polisa już istnieje w tabeli "platnosci"
-    istnieje = crud.sprawdz_platnosci(db, platnosci.numer_polisy)
-    if istnieje:
-        raise HTTPException(status_code=400, detail="Polisa już posiada płatności.")
-    
-    # Zapisz nowe płatności
-    return crud.zapisz_platnosci(db, platnosci)
+    try:
 
+        istnieje = crud.sprawdz_platnosci(db, platnosci.numer_polisy)
+
+        if istnieje:
+            raise HTTPException(status_code=400, detail="Polisa już posiada płatności.")
+
+        return crud.zapisz_platnosci(db, platnosci)
+    
+    except ValueError as e:
+
+        raise HTTPException(status_code=404, detail=str(e))
+
+# Endpoint do aktualizacji płatności
 @router.put("/platnosci", response_model=schemas.PlatnosciResponse)
 def aktualizuj_platnosci(
+
+    
     numer_polisy: str = Query(..., description="Numer polisy zakodowany w URL"),
     nowe_platnosci: dict = Body(..., description="Nowe płatności w formacie JSON"),
     db: Session = Depends(get_db)
@@ -151,7 +182,9 @@ def aktualizuj_platnosci(
         aktualne_platnosci = platnosc.platnosci.split(";")
         for i, nowa_platnosc in nowe_platnosci.items():
             if nowa_platnosc:  # Jeśli użytkownik wpisał wartość
-                aktualne_platnosci[int(i)] = f"{aktualne_platnosci[int(i)].split(',')[0]},{aktualne_platnosci[int(i)].split(',')[1]},{nowa_platnosc}"
+                data_zaplacenia = nowa_platnosc.get("dataZaplacenia", "").strip()
+                kwota_zaplacenia = nowa_platnosc.get("kwotaZaplacenia", "").strip()
+                aktualne_platnosci[int(i)] = f"{aktualne_platnosci[int(i)].split(',')[0]},{aktualne_platnosci[int(i)].split(',')[1]},{data_zaplacenia},{kwota_zaplacenia}"
 
         platnosc.platnosci = ";".join(aktualne_platnosci)
         db.commit()
@@ -160,3 +193,10 @@ def aktualizuj_platnosci(
     except Exception as e:
         print(f"Błąd podczas aktualizacji płatności: {e}")
         raise HTTPException(status_code=500, detail="Wystąpił błąd podczas aktualizacji płatności.")
+    
+@router.get("/ubezpieczony", response_model=schemas.UbezpieczonyResponse)
+def pobierz_ubezpieczonego(numer_polisy: str = Query(..., description="Numer polisy zakodowany w URL"), db: Session = Depends(get_db)):
+    ubezpieczony = db.query(models.Ubezpieczony).filter(models.Ubezpieczony.numer_polisy == numer_polisy).first()
+    if not ubezpieczony:
+        return {"id": None, "numer_polisy": numer_polisy, "ubezpieczony": "Brak danych"}
+    return ubezpieczony

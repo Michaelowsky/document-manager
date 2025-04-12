@@ -110,8 +110,22 @@ def sprawdz_platnosci(db: Session, numer_polisy: str):
         return None
 
 def zapisz_platnosci(db: Session, platnosci: schemas.PlatnosciCreate):
-    nowa_platnosc = models.Platnosci(**platnosci.dict())
+
+    polisa = db.query(models.Polisa).filter(models.Polisa.numer_ubezpieczenia == platnosci.numer_polisy).first()
+
+    if not polisa:
+        raise ValueError(f"Nie znaleziono polisy o numerze: {platnosci.numer_polisy}")
+    
+    nazwa_towarzystwa = polisa.towarzystwo
+
+    nowa_platnosc = models.Platnosci(
+        nazwa_towarzystwa=nazwa_towarzystwa,
+        numer_polisy=platnosci.numer_polisy,
+        platnosci=platnosci.platnosci
+    )
+
     db.add(nowa_platnosc)
     db.commit()
     db.refresh(nowa_platnosc)
+
     return nowa_platnosc
