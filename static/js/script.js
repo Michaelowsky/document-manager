@@ -578,8 +578,7 @@ function przejdzDoPaneluPolisy(numerPolisy) {
 
     // Wywołanie funkcji sprawdzPlatnosci
     console.log('Wywołanie funkcji sprawdzPlatnosci z numerem polisy:', numerPolisy);
-    const encodedNumerPolisy = encodeURIComponent(numerPolisy);
-    sprawdzPlatnosci(encodedNumerPolisy);
+    sprawdzPlatnosci(numerPolisy);
 }
 
 async function sprawdzPlatnosci(numerPolisy) {
