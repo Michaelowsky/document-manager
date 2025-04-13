@@ -39,3 +39,4 @@ class Platnosci(Base):
     nazwa_towarzystwa = Column(String, nullable=False)
     numer_polisy = Column(String, index=True, unique=True)
     platnosci = Column(String) 
+    kurtaz = Column(Numeric(10, 2))  # Dodano kolumnę kurtaz

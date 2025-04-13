@@ -752,6 +752,8 @@ function generujTabeleRat() {
 async function zapiszPlatnosci() {
     const dataPlatnosci = document.querySelectorAll(".dataPlatnosci");
     const kwotaPlatnosci = document.querySelectorAll(".kwotaPlatnosci");
+    const kurtazProcent = parseFloat(document.getElementById("kurtazProcent").value); // Pobierz wartość kurtażu
+    const numerPolisy = document.getElementById("panelPolisyTitle").innerText.split(": ")[1]; // Pobierz numer polisy
     let platnosci = [];
 
     for (let i = 0; i < dataPlatnosci.length; i++) {
@@ -767,10 +769,21 @@ async function zapiszPlatnosci() {
     const platnosciString = platnosci.join("; ");
     console.log("Zapisane płatności:", platnosciString);
 
-    // Pobierz numer polisy z tytułu
-    const numerPolisy = document.getElementById("panelPolisyTitle").innerText.split(": ")[1];
+    if (!numerPolisy || typeof numerPolisy !== "string") {
+        alert("Numer polisy jest nieprawidłowy.");
+        return;
+    }
 
-    // Wyślij dane do backendu
+    if (!platnosciString || typeof platnosciString !== "string") {
+        alert("Płatności są nieprawidłowe.");
+        return;
+    }
+
+    if (isNaN(kurtazProcent)) {
+        alert("Kurtaż musi być liczbą.");
+        return;
+    }
+
     const response = await fetch("/platnosci/", {
         method: "POST",
         headers: {
@@ -779,14 +792,14 @@ async function zapiszPlatnosci() {
         body: JSON.stringify({
             numer_polisy: numerPolisy,
             platnosci: platnosciString,
+            kurtaz: kurtazProcent, // Dodano kurtaż
         }),
     });
 
     const result = await response.json();
+
     if (response.ok) {
         alert("Płatności zapisane pomyślnie.");
-
-        // Przejdź na ekran główny
         przejdzDoEkranuGlownego();
     } else {
         alert(`Wystąpił błąd: ${result.detail}`);

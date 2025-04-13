@@ -121,7 +121,8 @@ def zapisz_platnosci(db: Session, platnosci: schemas.PlatnosciCreate):
     nowa_platnosc = models.Platnosci(
         nazwa_towarzystwa=nazwa_towarzystwa,
         numer_polisy=platnosci.numer_polisy,
-        platnosci=platnosci.platnosci
+        platnosci=platnosci.platnosci,
+        kurtaz=platnosci.kurtaz  # Dodano zapis kurtażu
     )
 
     db.add(nowa_platnosc)

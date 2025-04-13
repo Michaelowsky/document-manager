@@ -54,6 +54,7 @@ class UbezpieczonyResponse(UbezpieczonyBase):
 class PlatnosciBase(BaseModel):
     numer_polisy: str
     platnosci: str
+    kurtaz: float  # Dodano pole kurtaz
 
 class PlatnosciCreate(PlatnosciBase):
     pass

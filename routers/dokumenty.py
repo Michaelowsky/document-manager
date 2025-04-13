@@ -147,17 +147,11 @@ def sprawdz_polisy(
 # Endpoint do zapisywania płatności
 @router.post("/platnosci/", response_model=schemas.PlatnosciResponse)
 def zapisz_platnosci(platnosci: schemas.PlatnosciCreate, db: Session = Depends(get_db)):
+    print(f"Otrzymane dane: numer_polisy={platnosci.numer_polisy}, platnosci={platnosci.platnosci}, kurtaz={platnosci.kurtaz}")
     try:
-
-        istnieje = crud.sprawdz_platnosci(db, platnosci.numer_polisy)
-
-        if istnieje:
-            raise HTTPException(status_code=400, detail="Polisa już posiada płatności.")
-
-        return crud.zapisz_platnosci(db, platnosci)
-    
+        nowa_platnosc = crud.zapisz_platnosci(db, platnosci)
+        return nowa_platnosc
     except ValueError as e:
-
         raise HTTPException(status_code=404, detail=str(e))
 
 # Endpoint do aktualizacji płatności
