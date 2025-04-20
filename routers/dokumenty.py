@@ -9,6 +9,7 @@ from fastapi.responses import FileResponse
 import os
 from datetime import datetime
 from urllib.parse import unquote
+from decimal import Decimal
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
@@ -25,7 +26,13 @@ def pobierz_polisy(numer_polisy: str = Query(..., description="Numer polisy zako
     polisa = db.query(models.Polisa).filter(models.Polisa.numer_ubezpieczenia == numer_polisy).first()
     if not polisa:
         raise HTTPException(status_code=404, detail="Nie znaleziono polisy o podanym numerze.")
-    return polisa
+
+    # Pobierz dane ubezpieczonego
+    ubezpieczony = db.query(models.Ubezpieczony).filter(models.Ubezpieczony.numer_polisy == numer_polisy).first()
+    polisa_dict = polisa.__dict__
+    polisa_dict["ubezpieczony"] = ubezpieczony.ubezpieczony if ubezpieczony else None
+
+    return polisa_dict
 
 # Endpoint do dodawania firmy
 @router.post("/dodaj_firme/")
@@ -194,3 +201,89 @@ def pobierz_ubezpieczonego(numer_polisy: str = Query(..., description="Numer pol
     if not ubezpieczony:
         return {"id": None, "numer_polisy": numer_polisy, "ubezpieczony": "Brak danych"}
     return ubezpieczony
+
+@router.post("/raport_knf/")
+def generuj_raport_knf(
+    data_zawarcia_od: str = Body(..., description="Data zawarcia od"),
+    data_zawarcia_do: str = Body(..., description="Data zawarcia do"),
+    db: Session = Depends(get_db)
+):
+    # Konwertuj zakres dat na obiekty daty
+    data_zawarcia_od_date = datetime.strptime(data_zawarcia_od, "%Y-%m-%d").date()
+    data_zawarcia_do_date = datetime.strptime(data_zawarcia_do, "%Y-%m-%d").date()
+
+    # Pobierz polisy z tabeli archiwum w podanym przedziale dat
+    polisy = (
+        db.query(models.Polisa.numer_ubezpieczenia, models.Polisa.towarzystwo, models.Polisa.skladka)
+        .filter(models.Polisa.data_zawarcia >= data_zawarcia_od_date)
+        .filter(models.Polisa.data_zawarcia <= data_zawarcia_do_date)
+        .all()
+    )
+
+    # Grupuj dane według towarzystwa
+    raport = {}
+    for numer_polisy, towarzystwo, skladka in polisy:
+        if towarzystwo not in raport:
+            raport[towarzystwo] = {
+                "suma_skladek": 0,
+                "suma_skladek_kurtaz": 0,
+                "suma_kwot_zaplacenia": 0,
+                "prowizja_zainkasowana": 0  # Nowa kolumna
+            }
+
+        # Dodaj składkę do sumy składek
+        raport[towarzystwo]["suma_skladek"] += skladka
+
+        # Pobierz kurtaż z tabeli płatności
+        platnosc = db.query(models.Platnosci).filter(models.Platnosci.numer_polisy == numer_polisy).first()
+        if platnosc and platnosc.kurtaz:
+            raport[towarzystwo]["suma_skladek_kurtaz"] += Decimal(skladka) * platnosc.kurtaz
+
+        # Oblicz sumę kwot zapłacenia i prowizję w podanym okresie
+        if platnosc and platnosc.platnosci:
+            platnosci = platnosc.platnosci.split(";")
+            for platnosc_entry in platnosci:
+                try:
+                    # Rozdziel dane płatności
+                    planowana_data, skladka_raty, data_zaplacenia, kwota_zaplacenia = platnosc_entry.split(",")
+
+                    # Konwertuj data_zaplacenia na obiekt daty
+                    if data_zaplacenia.strip():
+                        data_zaplacenia_date = datetime.strptime(data_zaplacenia.strip(), "%Y-%m-%d").date()
+
+                        # Sprawdź, czy data zapłacenia mieści się w podanym zakresie
+                        if data_zawarcia_od_date <= data_zaplacenia_date <= data_zawarcia_do_date:
+                            # Dodaj kwotę zapłacenia do sumy, jeśli istnieje
+                            if kwota_zaplacenia.strip():
+                                kwota_zaplacenia_decimal = Decimal(kwota_zaplacenia.strip())
+                                raport[towarzystwo]["suma_kwot_zaplacenia"] += kwota_zaplacenia_decimal
+
+                                # Oblicz prowizję i dodaj do sumy prowizji
+                                raport[towarzystwo]["prowizja_zainkasowana"] += kwota_zaplacenia_decimal * platnosc.kurtaz
+                except ValueError as e:
+                    print(f"Błąd przetwarzania płatności: {platnosc_entry}, błąd: {e}")
+                    continue
+
+    # Konwertuj dane do DataFrame
+    import pandas as pd
+    df = pd.DataFrame(
+        [
+            {
+                "Towarzystwo": towarzystwo,
+                "Suma Składek": dane["suma_skladek"],
+                "Suma Składek * Kurtaż": dane["suma_skladek_kurtaz"],
+                "Suma Kwot Zapłacenia": dane["suma_kwot_zaplacenia"],
+                "Prowizja Zainkasowana": dane["prowizja_zainkasowana"]  # Nowa kolumna
+            }
+            for towarzystwo, dane in raport.items()
+        ]
+    )
+
+    # Zapisz do pliku Excel
+    folder_path = "RaportyKNF"
+    os.makedirs(folder_path, exist_ok=True)
+    file_name = f"Raport_KNF_{data_zawarcia_od}_do_{data_zawarcia_do}.xlsx"
+    file_path = os.path.join(folder_path, file_name)
+    df.to_excel(file_path, index=False)
+
+    return {"message": f"Raport wygenerowany: {file_name}", "file_path": file_path}

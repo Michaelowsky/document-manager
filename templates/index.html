@@ -17,6 +17,8 @@
                 <div class="dropdown-content">
                     <button id="addDocumentButton">Nowa Polisa</button>
                     <button id="addPaymentButton">Płatności</button>
+                    <button id="documentInfo">Dane polisy</button>
+                    <button id="reportKNF">Raport KNF</button>
                 </div>
             </div>
         </div>
@@ -256,6 +258,41 @@
                 </div>
                 <div id="tableContainer"></div>
                 <button id="savePaymentsButton" style="display: none;" onclick="zapiszPlatnosci()">Zapisz płatności</button>
+            </div>
+
+            <div id="documentInfoContent" class="content" style="display: none;">
+                <h1>Dane polisy</h1>
+                <form id="policy-search-form" class="centered-form">
+                    <div class="form-group">
+                        <label for="policy-number">Numer Polisy:</label>
+                        <input type="text" id="policy-number" name="policy-number" class="small-input centered-input">
+                    </div>
+                    <div class="form-group search-form-group">
+                        <button type="submit" class="search-button large-button">Szukaj</button>
+                    </div>
+                </form>
+                <div id="policy-details-container" style="margin-top: 20px;">
+                    <!-- Tabela wyników zostanie wygenerowana dynamicznie -->
+                </div>
+            </div>
+
+            <div id="reportKNFContent" class="content" style="display: none;">
+                <h1>Generowanie Raportu KNF</h1>
+                <form id="reportKNF-form" class="centered-form">
+                    <div class="inline-group">
+                        <div class="form-group">
+                            <label for="reportKNF-data-zawarcia-od">Data Zawarcia (od):</label>
+                            <input type="date" id="reportKNF-data-zawarcia-od" name="reportKNF-data-zawarcia-od" class="centered-input">
+                        </div>
+                        <div class="form-group">
+                            <label for="reportKNF-data-zawarcia-do">Data Zawarcia (do):</label>
+                            <input type="date" id="reportKNF-data-zawarcia-do" name="reportKNF-data-zawarcia-do" class="centered-input">
+                        </div>
+                    </div>
+                    <div class="form-group search-form-group">
+                        <button type="submit" class="search-button large-button">Generuj Raport</button>
+                    </div>
+                </form>
             </div>
 
         </div>

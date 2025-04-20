@@ -369,3 +369,75 @@ label[for="osoba_prywatna"], label[for="firma"] {
 #tableContainer {
     margin-top: 20px;
 }
+
+/* Wyśrodkowanie formularza */
+.centered-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+/* Styl dla przycisku Szukaj */
+.search-button {
+    background-color: grey; /* Niebieski kolor */
+    color: white;
+    border: none;
+    padding: 15px 30px; /* Większy rozmiar */
+    font-size: 18px; /* Większy tekst */
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+    transition: background-color 0.3s ease;
+}
+
+.search-button:hover {
+    background-color: #0056b3; /* Ciemniejszy niebieski przy najechaniu */
+}
+
+/* Wyśrodkowanie pola tekstowego */
+.centered-input {
+    width: 70%; /* Zwiększ szerokość pola tekstowego */
+    margin: 10px auto; /* Wyśrodkowanie */
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.search-form-group {
+    display: flex;
+    justify-content: center; /* Wyśrodkowanie poziome */
+    align-items: center; /* Wyśrodkowanie pionowe */
+}
+
+#policy-details-container table {
+    margin: 20px auto;
+    border-collapse: collapse;
+    width: 80%;
+    text-align: center;
+}
+
+#policy-details-container th, #policy-details-container td {
+    border: 1px solid #ddd;
+    padding: 10px;
+}
+
+#policy-details-container th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
+#reportKNFContent h1 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+#reportKNF-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+}

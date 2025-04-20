@@ -869,3 +869,139 @@ async function zapiszAktualizacjePlatnosci(numerPolisy) {
         alert(`Wystąpił błąd: ${result.detail}`);
     }
 }
+
+document.getElementById("documentInfo").addEventListener("click", function () {
+    console.log("Kliknięto przycisk Dane polisy");
+
+    // Ukryj wszystkie sekcje
+    document.querySelectorAll(".content").forEach(section => {
+        section.classList.remove("active");
+        section.style.display = "none";
+    });
+
+    // Pokaż sekcję "Dane polisy"
+    const documentInfoContent = document.getElementById("documentInfoContent");
+    documentInfoContent.classList.add("active");
+    documentInfoContent.style.display = "block";
+
+    // Wyczyść pole numeru polisy
+    document.getElementById("policy-number").value = "";
+});
+
+document.getElementById("policy-search-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const policyNumber = document.getElementById("policy-number").value.trim();
+    if (!policyNumber) {
+        alert("Proszę wpisać numer polisy.");
+        return;
+    }
+
+    try {
+        // Pobierz dane polisy z backendu
+        const response = await fetch(`/polisy?numer_polisy=${encodeURIComponent(policyNumber)}`);
+        if (!response.ok) {
+            throw new Error("Nie znaleziono polisy o podanym numerze.");
+        }
+
+        const policyData = await response.json();
+
+        // Wygeneruj tabelę z wynikami
+        const policyDetailsContainer = document.getElementById("policy-details-container");
+        policyDetailsContainer.innerHTML = `
+            <table>
+                <thead>
+                    <tr>
+                        <th>Towarzystwo</th>
+                        <th>Numer Polisy</th>
+                        <th>Ubezpieczający</th>
+                        <th>Ubezpieczony</th>
+                        <th>Przedmiot Ubezpieczenia</th>
+                        <th>Data Zawarcia</th>
+                        <th>Data Rozpoczęcia</th>
+                        <th>Data Zakończenia</th>
+                        <th>Składka</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>${policyData.towarzystwo}</td>
+                        <td>${policyData.numer_ubezpieczenia}</td>
+                        <td>${policyData.ubezpieczajacy}</td>
+                        <td>${policyData.ubezpieczony || "Brak danych"}</td>
+                        <td>${policyData.przedmiot_ubezpieczenia}</td>
+                        <td>${policyData.data_zawarcia}</td>
+                        <td>${policyData.ochrona_od}</td>
+                        <td>${policyData.ochrona_do}</td>
+                        <td>${policyData.skladka}</td>
+                    </tr>
+                </tbody>
+            </table>
+        `;
+    } catch (error) {
+        alert(error.message);
+        document.getElementById("policy-details-container").innerHTML = "";
+    }
+});
+
+document.getElementById("reportKNF").addEventListener("click", function () {
+    console.log("Kliknięto przycisk Raport KNF");
+
+    // Ukryj wszystkie sekcje
+    document.querySelectorAll(".content").forEach(section => {
+        section.classList.remove("active");
+        section.style.display = "none";
+    });
+
+    // Pokaż sekcję "Raport KNF"
+    const reportKNFContent = document.getElementById("reportKNFContent");
+    reportKNFContent.classList.add("active");
+    reportKNFContent.style.display = "block";
+
+    // Wyczyść pola dat
+    document.getElementById("reportKNF-data-zawarcia-od").value = "";
+    document.getElementById("reportKNF-data-zawarcia-do").value = "";
+});
+
+document.getElementById("reportKNF-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const dataZawarciaOd = document.getElementById("reportKNF-data-zawarcia-od").value;
+    const dataZawarciaDo = document.getElementById("reportKNF-data-zawarcia-do").value;
+
+    if (!dataZawarciaOd || !dataZawarciaDo) {
+        alert("Proszę podać zakres dat.");
+        return;
+    }
+
+    try {
+        const response = await fetch("/raport_knf/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                data_zawarcia_od: dataZawarciaOd,
+                data_zawarcia_do: dataZawarciaDo,
+            }),
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+            alert(result.message);
+
+            // Pobierz plik Excel
+            const link = document.createElement("a");
+            link.href = result.file_path;
+            link.download = result.file_path.split("/").pop();
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } else {
+            alert(`Błąd: ${result.detail}`);
+        }
+    } catch (error) {
+        console.error("Błąd podczas generowania raportu:", error);
+        alert("Wystąpił błąd podczas generowania raportu.");
+    }
+});
