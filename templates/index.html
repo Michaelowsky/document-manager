@@ -12,15 +12,10 @@
         <div class="sidebar">
             <img src="/static/images/logo.png" alt="Logo firmy" class="logo">
             <button id="mainScreenButton">Ekran Główny</button>
-            <div class="dropdown">
-                <button id="toolsButton">Produkcja</button>
-                <div class="dropdown-content">
-                    <button id="addDocumentButton">Nowa Polisa</button>
-                    <button id="addPaymentButton">Płatności</button>
-                    <button id="documentInfo">Dane polisy</button>
-                    <button id="reportKNF">Raport KNF</button>
-                </div>
-            </div>
+            <button id="addDocumentButton">Nowa Polisa</button>
+            <button id="addPaymentButton">Płatności</button>
+            <button id="documentInfo">Dane polisy</button>
+            <button id="reportKNF">Raport KNF</button>
         </div>
 
         <!-- Główna zawartość -->
@@ -153,7 +148,9 @@
                     <div class="form-group">
                         <label for="opiekun">Opiekunowie:</label>
                         <select id="opiekun" name="opiekun" required>
-                            <option value="alicjat">Alicja Tokarczyk</option>
+                            <option value="Alicja Tokarczyk">Alicja Tokarczyk</option>
+                            <option value="Sabina Belina">Sabina Belina</option>
+                            <option value="Katarzyna Kamińska">Katarzyna Kamińska</option>
                         </select>
                     </div>
 
@@ -168,11 +165,17 @@
                     <div class="inline-group" id="nip_regon_group" style="display: none;">
                         <div class="form-group">
                             <label for="nip">NIP:</label>
-                            <input type="text" id="nip" name="nip">
+                            <div style="display: flex; align-items: center;">
+                                <input type="text" id="nip" name="nip">
+                                <button type="button" id="search-nip-button" style="margin-left: 5px;">🔍</button>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label for="regon">REGON:</label>
-                            <input type="text" id="regon" name="regon">
+                            <div style="display: flex; align-items: center;">
+                                <input type="text" id="regon" name="regon">
+                                <button type="button" id="search-regon-button" style="margin-left: 5px;">🔍</button>
+                            </div>
                         </div>
                     </div>
 
@@ -189,7 +192,29 @@
                             </div>
                             <div class="form-group">
                                 <label for="towarzystwo">Nazwa Towarzystwa Ubezpieczeniowego:</label>
-                                <input type="text" id="towarzystwo" name="towarzystwo" required>
+                                <select id="towarzystwo" name="towarzystwo" required>
+                                    <option value="Allianz">Towarzystwo Ubezpieczeń i Reasekuracji Allianz Polska S.A.</option>
+                                    <option value="Uniqa">UNIQA Towarzystwo Ubezpieczeń S.A.</option>
+                                    <option value="Generali">Generali Towarzystwo Ubezpieczeń S.A.</option>
+                                    <option value="InterRisk">InterRisk Towarzystwo Ubezpieczeń S.A. Vienna Insurance Group</option>
+                                    <option value="PZU">Powszechny Zakład Ubezpieczeń S.A.</option>
+                                    <option value="Warta">Towarzystwo Ubezpieczeń i Reasekuracji "WARTA" S.A.</option>
+                                    <option value="Hestia">Sopockie Towarzystwo Ubezpieczeń Ergo Hestia SA</option>
+                                    <option value="Wiener">WIENER TU S.A. Vienna Insurance Group</option>
+                                    <option value="Compensa">Compensa TU S.A. Vienna Insurance Group</option>
+                                    <option value="Leadenhall">Leadenhall Polska S.A.</option>
+                                    <option value="AXA">AXA Ubezpieczenia Towarzystwo Ubezpieczeń i Reasekuracji S.A.</option>
+                                    <option value="Allianz Życie">Towarzystwo Ubezpieczeń Allianz Życie Polska S.A.</option>
+                                    <option value="Zdrowie">Towarzystwo Ubezpieczeń ZDROWIE S.A.</option>
+                                    <option value="Inter">Towarzystwo Ubezpieczeń INTER Polska S.A.</option>
+                                    <option value="TUZ">TUZ Towarzystwo Ubezpieczeń Wzajemnych</option>
+                                    <option value="AXA Życie">AXA Życie Towarzystwo Ubezpieczeń S.A.</option>
+                                    <option value="PZU Życie">Powszechny Zakład Ubezpieczeń na Życie S.A.</option>
+                                    <option value="Findia">Findia Sp. z o.o.</option>
+                                    <option value="Unum">Unum Życie Towarzystwo Ubezpieczeń i Reasekuracji S. A.</option>
+                                    <option value="Uniqa Życie">Uniqa Towarzystwo Ubezpieczeń na Życie S. A.</option>
+                                    <option value="LuxMed">Lux Med Sp. z o.o.</option>
+                                </select>
                             </div>
                         </div>
 

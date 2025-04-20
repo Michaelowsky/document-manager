@@ -1005,3 +1005,59 @@ document.getElementById("reportKNF-form").addEventListener("submit", async (e) =
         alert("Wystąpił błąd podczas generowania raportu.");
     }
 });
+
+document.getElementById("search-nip-button").addEventListener("click", async () => {
+    const nipInput = document.getElementById("nip");
+    const regonInput = document.getElementById("regon");
+    const ubezpieczajacyInput = document.getElementById("ubezpieczajacy");
+
+    const nip = nipInput.value.trim();
+    if (!nip) {
+        alert("Proszę wpisać NIP.");
+        return;
+    }
+
+    try {
+        const response = await fetch(`/szukaj_firme/?nip=${encodeURIComponent(nip)}`);
+        if (!response.ok) {
+            throw new Error("Nie znaleziono firmy o podanym NIP.");
+        }
+
+        const firma = await response.json();
+        regonInput.value = firma.regon;
+        ubezpieczajacyInput.value = firma.ubezpieczajacy;
+        alert("Dane firmy zostały uzupełnione.");
+    } catch (error) {
+        alert(error.message);
+        regonInput.value = "";
+        ubezpieczajacyInput.value = "";
+    }
+});
+
+document.getElementById("search-regon-button").addEventListener("click", async () => {
+    const regonInput = document.getElementById("regon");
+    const nipInput = document.getElementById("nip");
+    const ubezpieczajacyInput = document.getElementById("ubezpieczajacy");
+
+    const regon = regonInput.value.trim();
+    if (!regon) {
+        alert("Proszę wpisać REGON.");
+        return;
+    }
+
+    try {
+        const response = await fetch(`/szukaj_firme_regon/?regon=${encodeURIComponent(regon)}`);
+        if (!response.ok) {
+            throw new Error("Nie znaleziono firmy o podanym REGON.");
+        }
+
+        const firma = await response.json();
+        nipInput.value = firma.nip;
+        ubezpieczajacyInput.value = firma.ubezpieczajacy;
+        alert("Dane firmy zostały uzupełnione.");
+    } catch (error) {
+        alert(error.message);
+        nipInput.value = "";
+        ubezpieczajacyInput.value = "";
+    }
+});

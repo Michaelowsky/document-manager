@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import or_, Date
+from sqlalchemy import or_, Date, func
 import models, schemas
 from datetime import datetime
 from sqlalchemy.sql import cast
@@ -40,7 +40,7 @@ def wyszukaj_polisy(db: Session, ubezpieczajacy: str = None, ubezpieczony: str =
     query = db.query(models.Polisa)
     
     if ubezpieczajacy:
-        query = query.filter(models.Polisa.ubezpieczajacy.like(f"%{ubezpieczajacy}%"))
+        query = query.filter(func.lower(models.Polisa.ubezpieczajacy).ilike(f"%{ubezpieczajacy.lower()}%"))
     
     if ubezpieczony:
         polisy = db.query(models.Ubezpieczony).filter(models.Ubezpieczony.ubezpieczony.like(f"%{ubezpieczony}%")).all()

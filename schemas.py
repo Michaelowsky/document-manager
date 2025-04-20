@@ -19,6 +19,7 @@ class PolisaCreate(PolisaBase):
 
 class PolisaResponse(PolisaBase):
     id: int
+    ubezpieczony: str = "Brak danych"  # Domyślna wartość, jeśli brak danych
 
     class Config:
         orm_mode = True

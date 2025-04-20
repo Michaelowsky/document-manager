@@ -23,16 +23,24 @@ def dodaj_polise(polisa: schemas.PolisaCreate, db: Session = Depends(get_db)):
 # Endpoint do pobierania polis
 @router.get("/polisy", response_model=schemas.PolisaResponse)
 def pobierz_polisy(numer_polisy: str = Query(..., description="Numer polisy zakodowany w URL"), db: Session = Depends(get_db)):
-    polisa = db.query(models.Polisa).filter(models.Polisa.numer_ubezpieczenia == numer_polisy).first()
+    print(f"Zapytanie o polisę z numerem: {numer_polisy}")
+
+    # Pobierz polisę
+    polisa = db.query(models.Polisa).filter(models.Polisa.numer_ubezpieczenia == numer_polisy.strip()).first()
     if not polisa:
+        print("Nie znaleziono polisy o podanym numerze.")
         raise HTTPException(status_code=404, detail="Nie znaleziono polisy o podanym numerze.")
 
     # Pobierz dane ubezpieczonego
-    ubezpieczony = db.query(models.Ubezpieczony).filter(models.Ubezpieczony.numer_polisy == numer_polisy).first()
-    polisa_dict = polisa.__dict__
-    polisa_dict["ubezpieczony"] = ubezpieczony.ubezpieczony if ubezpieczony else None
+    ubezpieczony = db.query(models.Ubezpieczony).filter(models.Ubezpieczony.numer_polisy == numer_polisy.strip()).first()
+    if ubezpieczony:
+        print(f"Znaleziono ubezpieczonego: {ubezpieczony.ubezpieczony}")
+        polisa.ubezpieczony = ubezpieczony.ubezpieczony  # Dodaj pole do obiektu polisy
+    else:
+        print(f"Nie znaleziono ubezpieczonego dla numeru polisy: {numer_polisy}")
+        polisa.ubezpieczony = "Brak danych"
 
-    return polisa_dict
+    return schemas.PolisaResponse.from_orm(polisa)
 
 # Endpoint do dodawania firmy
 @router.post("/dodaj_firme/")
@@ -287,3 +295,17 @@ def generuj_raport_knf(
     df.to_excel(file_path, index=False)
 
     return {"message": f"Raport wygenerowany: {file_name}", "file_path": file_path}
+
+@router.get("/szukaj_firme/", response_model=schemas.FirmaResponse)
+def szukaj_firme(nip: str = Query(..., description="NIP firmy"), db: Session = Depends(get_db)):
+    firma = db.query(models.Firma).filter(models.Firma.nip == nip.strip()).first()
+    if not firma:
+        raise HTTPException(status_code=404, detail="Nie znaleziono firmy o podanym NIP.")
+    return firma
+
+@router.get("/szukaj_firme_regon/", response_model=schemas.FirmaResponse)
+def szukaj_firme_regon(regon: str = Query(..., description="REGON firmy"), db: Session = Depends(get_db)):
+    firma = db.query(models.Firma).filter(models.Firma.regon == regon.strip()).first()
+    if not firma:
+        raise HTTPException(status_code=404, detail="Nie znaleziono firmy o podanym REGON.")
+    return firma
