@@ -95,12 +95,16 @@ document.getElementById('osoba_prywatna').addEventListener('change', function() 
     document.getElementById('nip_regon_group').style.display = 'none';
     document.getElementById('ubezpieczajacy_group').style.display = 'block';
     document.getElementById('ubezpieczony_group').style.display = 'block';
+    const submitButton = document.getElementById('submit-document-button');
+    submitButton.style.display = 'block'; // Pokaż przycisk
 });
 
 document.getElementById('firma').addEventListener('change', function() {
     document.getElementById('nip_regon_group').style.display = 'flex';
     document.getElementById('ubezpieczajacy_group').style.display = 'block';
     document.getElementById('ubezpieczony_group').style.display = 'block';
+    const submitButton = document.getElementById('submit-document-button');
+    submitButton.style.display = 'block'; // Pokaż przycisk
 });
 
 //////////////////////////////
@@ -1061,3 +1065,83 @@ document.getElementById("search-regon-button").addEventListener("click", async (
         ubezpieczajacyInput.value = "";
     }
 });
+
+document.addEventListener('click', function (event) {
+    const target = event.target;
+
+    // Sprawdź, czy kliknięty element ma atrybut data-target
+    if (target.dataset && target.dataset.target) {
+        const targetId = target.dataset.target;
+        console.log(`Przejście do ekranu: ${targetId}`);
+        przejdzDoEkranu(targetId); // Użycie funkcji przejdzDoEkranu
+    }
+});
+
+function przejdzDoEkranu(idNowegoEkranu) {
+    const aktywnyEkran = document.querySelector('.content.active');
+    const nowyEkran = document.getElementById(idNowegoEkranu);
+
+    if (aktywnyEkran) {
+        // Dodaj animację zanikania do obecnego ekranu
+        aktywnyEkran.classList.add('fade-out');
+        aktywnyEkran.addEventListener('animationend', () => {
+            aktywnyEkran.classList.remove('active', 'fade-out');
+            aktywnyEkran.style.display = 'none';
+
+            // Pokaż nowy ekran dopiero po zakończeniu animacji
+            nowyEkran.style.display = 'block';
+            nowyEkran.classList.add('fade-in', 'active');
+            nowyEkran.addEventListener('animationend', () => {
+                nowyEkran.classList.remove('fade-in');
+            });
+        }, { once: true });
+    } else {
+        // Jeśli nie ma aktywnego ekranu, po prostu pokaż nowy ekran
+        nowyEkran.style.display = 'block';
+        nowyEkran.classList.add('fade-in', 'active');
+        nowyEkran.addEventListener('animationend', () => {
+            nowyEkran.classList.remove('fade-in');
+        });
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const splashScreen = document.getElementById('splashScreen');
+
+    // Sprawdź, czy ekran startowy już się pojawił
+    if (!localStorage.getItem('splashShown')) {
+        // Pokaż ekran startowy
+        splashScreen.style.display = 'flex';
+
+        // Po 3 sekundach ukryj ekran startowy i przejdź do ekranu głównego
+        setTimeout(() => {
+            splashScreen.classList.add('hidden');
+            setTimeout(() => {
+                splashScreen.style.display = 'none';
+                przejdzDoEkranu('homeContent'); // Przejdź do ekranu głównego
+            }, 1000); // Czas trwania animacji ukrywania
+        }, 3000); // Czas wyświetlania ekranu startowego
+
+        // Zapisz w localStorage, że ekran startowy został pokazany
+        localStorage.setItem('splashShown', 'true');
+    } else {
+        // Jeśli ekran startowy już się pojawił, ukryj go natychmiast
+        splashScreen.style.display = 'none';
+        przejdzDoEkranu('homeContent'); // Przejdź do ekranu głównego
+    }
+});
+
+const osobaPrywatnaRadio = document.getElementById('osoba_prywatna');
+const firmaRadio = document.getElementById('firma');
+const submitButton = document.getElementById('submit-document-button');
+
+function updateSubmitButtonVisibility() {
+    if (osobaPrywatnaRadio.checked || firmaRadio.checked) {
+        submitButton.style.display = 'block'; // Pokaż przycisk
+    } else {
+        submitButton.style.display = 'none'; // Ukryj przycisk
+    }
+}
+
+osobaPrywatnaRadio.addEventListener('change', updateSubmitButtonVisibility);
+firmaRadio.addEventListener('change', updateSubmitButtonVisibility);

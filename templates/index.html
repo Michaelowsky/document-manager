@@ -7,15 +7,18 @@
     <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
+    <div id="splashScreen" class="splash-screen">
+        <img src="/static/images/logo.png" alt="Logo firmy" class="splash-logo">
+    </div>
     <div class="wrapper">
         <!-- Pasek boczny -->
         <div class="sidebar">
             <img src="/static/images/logo.png" alt="Logo firmy" class="logo">
-            <button id="mainScreenButton">Ekran Główny</button>
-            <button id="addDocumentButton">Nowa Polisa</button>
-            <button id="addPaymentButton">Płatności</button>
-            <button id="documentInfo">Dane polisy</button>
-            <button id="reportKNF">Raport KNF</button>
+            <button id="mainScreenButton" data-target="homeContent">Ekran Główny</button>
+            <button id="addDocumentButton" data-target="addDocumentContent">Nowa Polisa</button>
+            <button id="addPaymentButton" data-target="addPaymentContent">Płatności</button>
+            <button id="documentInfo" data-target="documentInfoContent">Dane polisy</button>
+            <button id="reportKNF" data-target="reportKNFContent">Raport KNF</button>
         </div>
 
         <!-- Główna zawartość -->
@@ -250,9 +253,11 @@
                             <label for="ochrona_do">Data zakończenia:</label>
                             <input type="date" id="ochrona_do" name="ochrona_do" required>
                         </div>
-                    </div>
 
-                    <button type="submit">Dodaj dokument</button>
+                        <div class="form-group">
+                            <button type="submit" id="submit-document-button" style="display: none;">Dodaj dokument</button>
+                        </div>
+                    </div>
                 </form>
                 <div id="response"></div>
             </div>
@@ -265,7 +270,7 @@
                         <input type="text" id="search-numer-polisy-payment" name="search-numer-polisy-payment" class="small-input centered-input">
                     </div>
                     <div class="form-group">
-                        <button type="submit" class="search-button large-button">Szukaj</button>
+                        <button type="submit" id="search-payment-button" class="search-button">Szukaj</button>
                     </div>
                 </form>
                 <div id="paymentResponse"></div>

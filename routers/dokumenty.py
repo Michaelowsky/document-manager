@@ -10,6 +10,9 @@ import os
 from datetime import datetime
 from urllib.parse import unquote
 from decimal import Decimal
+from openpyxl import Workbook
+from openpyxl.utils.dataframe import dataframe_to_rows
+from openpyxl.styles import Alignment, Font
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
@@ -203,13 +206,6 @@ def aktualizuj_platnosci(
         print(f"Błąd podczas aktualizacji płatności: {e}")
         raise HTTPException(status_code=500, detail="Wystąpił błąd podczas aktualizacji płatności.")
     
-@router.get("/ubezpieczony", response_model=schemas.UbezpieczonyResponse)
-def pobierz_ubezpieczonego(numer_polisy: str = Query(..., description="Numer polisy zakodowany w URL"), db: Session = Depends(get_db)):
-    ubezpieczony = db.query(models.Ubezpieczony).filter(models.Ubezpieczony.numer_polisy == numer_polisy).first()
-    if not ubezpieczony:
-        return {"id": None, "numer_polisy": numer_polisy, "ubezpieczony": "Brak danych"}
-    return ubezpieczony
-
 @router.post("/raport_knf/")
 def generuj_raport_knf(
     data_zawarcia_od: str = Body(..., description="Data zawarcia od"),
@@ -233,11 +229,15 @@ def generuj_raport_knf(
     for numer_polisy, towarzystwo, skladka in polisy:
         if towarzystwo not in raport:
             raport[towarzystwo] = {
+                "liczba_umow": 0,  # Nowa kolumna
                 "suma_skladek": 0,
                 "suma_skladek_kurtaz": 0,
                 "suma_kwot_zaplacenia": 0,
-                "prowizja_zainkasowana": 0  # Nowa kolumna
+                "prowizja_zainkasowana": 0
             }
+
+        # Zwiększ licznik umów
+        raport[towarzystwo]["liczba_umow"] += 1
 
         # Dodaj składkę do sumy składek
         raport[towarzystwo]["suma_skladek"] += skladka
@@ -252,47 +252,126 @@ def generuj_raport_knf(
             platnosci = platnosc.platnosci.split(";")
             for platnosc_entry in platnosci:
                 try:
-                    # Rozdziel dane płatności
                     planowana_data, skladka_raty, data_zaplacenia, kwota_zaplacenia = platnosc_entry.split(",")
-
-                    # Konwertuj data_zaplacenia na obiekt daty
                     if data_zaplacenia.strip():
                         data_zaplacenia_date = datetime.strptime(data_zaplacenia.strip(), "%Y-%m-%d").date()
-
-                        # Sprawdź, czy data zapłacenia mieści się w podanym zakresie
                         if data_zawarcia_od_date <= data_zaplacenia_date <= data_zawarcia_do_date:
-                            # Dodaj kwotę zapłacenia do sumy, jeśli istnieje
                             if kwota_zaplacenia.strip():
                                 kwota_zaplacenia_decimal = Decimal(kwota_zaplacenia.strip())
                                 raport[towarzystwo]["suma_kwot_zaplacenia"] += kwota_zaplacenia_decimal
-
-                                # Oblicz prowizję i dodaj do sumy prowizji
                                 raport[towarzystwo]["prowizja_zainkasowana"] += kwota_zaplacenia_decimal * platnosc.kurtaz
                 except ValueError as e:
                     print(f"Błąd przetwarzania płatności: {platnosc_entry}, błąd: {e}")
                     continue
 
     # Konwertuj dane do DataFrame
-    import pandas as pd
     df = pd.DataFrame(
         [
             {
+                "Lp.": idx + 1,
                 "Towarzystwo": towarzystwo,
+                "Liczba Umów": dane["liczba_umow"],  # Nowa kolumna
                 "Suma Składek": dane["suma_skladek"],
                 "Suma Składek * Kurtaż": dane["suma_skladek_kurtaz"],
                 "Suma Kwot Zapłacenia": dane["suma_kwot_zaplacenia"],
-                "Prowizja Zainkasowana": dane["prowizja_zainkasowana"]  # Nowa kolumna
+                "Prowizja Zainkasowana": dane["prowizja_zainkasowana"]
             }
-            for towarzystwo, dane in raport.items()
+            for idx, (towarzystwo, dane) in enumerate(raport.items())
         ]
     )
 
-    # Zapisz do pliku Excel
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Raport KNF"
+
+    # Dodaj wiersz z tekstem "Raport dla KNF za okres:"
+    ws.merge_cells("A1:G1")
+    ws["A1"] = f"Raport dla KNF za okres: {data_zawarcia_od} - {data_zawarcia_do}"
+    ws["A1"].alignment = Alignment(horizontal="center", vertical="center")
+    ws["A1"].font = Font(bold=True, size=14)
+
+    # Dodaj wiersz z tekstem "Data zawarcia od - data zawarcia do"
+    ws.merge_cells("C2:D2")
+    ws["C2"] = f"Data zawarcia od: {data_zawarcia_od} - {data_zawarcia_do}"
+    ws["C2"].alignment = Alignment(horizontal="center", vertical="center")
+    ws["C2"].font = Font(bold=True)
+
+    # Dodaj wiersz z tekstem "Data wygenerowania: obecna data"
+    current_date = datetime.now().strftime("%Y-%m-%d")
+    ws.merge_cells("E2:G2")
+    ws["E2"] = f"Data wygenerowania: {current_date}"
+    ws["E2"].alignment = Alignment(horizontal="center", vertical="center")
+    ws["E2"].font = Font(bold=True)
+
+    # Dodaj nagłówki z podziałem na dwa wiersze
+    ws.merge_cells("A3:A4")  # Lp.
+    ws.merge_cells("B3:B4")  # Towarzystwo
+    ws.merge_cells("C3:C4")  # Liczba Umów
+    ws.merge_cells("D3:E3")  # Składka plasowana
+    ws.merge_cells("F3:G3")  # Prowizja
+
+    ws["A3"] = "Lp."
+    ws["B3"] = "Towarzystwo"
+    ws["C3"] = "Liczba Umów"
+    ws["D3"] = "Składka plasowana"
+    ws["F3"] = "Prowizja"
+    ws["D4"] = "Przypisana"
+    ws["E4"] = "Plasowana"
+    ws["F4"] = "Przypisana"
+    ws["G4"] = "Zainkasowana"
+
+    # Ustaw wyrównanie i pogrubienie dla nagłówków
+    for cell in ws["A3:G4"]:
+        for c in cell:
+            c.alignment = Alignment(horizontal="center", vertical="center")
+            c.font = Font(bold=True)
+
+    # Ustaw szerokość kolumn
+    ws.column_dimensions["A"].width = 5  # Lp.
+    ws.column_dimensions["B"].width = 30  # Towarzystwo
+    ws.column_dimensions["C"].width = 15  # Liczba Umów
+    ws.column_dimensions["D"].width = 20  # Składka przypisana
+    ws.column_dimensions["E"].width = 20  # Składka plasowana
+    ws.column_dimensions["F"].width = 20  # Prowizja przypisana
+    ws.column_dimensions["G"].width = 20  # Prowizja zainkasowana
+
+    # Dodaj dane z DataFrame
+    for row_idx, row in enumerate(dataframe_to_rows(df, index=False, header=False), start=5):
+        ws.append(row)
+
+        # Formatowanie księgowe dla kolumn D, E, F, G
+        ws[f"D{row_idx}"].number_format = "#,##0.00 zł"
+        ws[f"E{row_idx}"].number_format = "#,##0.00 zł"
+        ws[f"F{row_idx}"].number_format = "#,##0.00 zł"
+        ws[f"G{row_idx}"].number_format = "#,##0.00 zł"
+
+    # Dodaj wiersz sumujący
+    last_row = ws.max_row + 1
+    ws[f"A{last_row}"] = "Suma"
+    ws[f"A{last_row}"].font = Font(bold=True)
+    ws[f"A{last_row}"].alignment = Alignment(horizontal="center", vertical="center")
+
+    ws[f"C{last_row}"] = f"=SUM(C5:C{last_row-1})"
+    ws[f"C{last_row}"].number_format = "#,##0"
+
+    ws[f"D{last_row}"] = f"=SUM(D5:D{last_row-1})"
+    ws[f"D{last_row}"].number_format = "#,##0.00 zł"
+
+    ws[f"E{last_row}"] = f"=SUM(E5:E{last_row-1})"
+    ws[f"E{last_row}"].number_format = "#,##0.00 zł"
+
+    ws[f"F{last_row}"] = f"=SUM(F5:F{last_row-1})"
+    ws[f"F{last_row}"].number_format = "#,##0.00 zł"
+
+    ws[f"G{last_row}"] = f"=SUM(G5:G{last_row-1})"
+    ws[f"G{last_row}"].number_format = "#,##0.00 zł"
+
+    # Zapisz plik
     folder_path = "RaportyKNF"
     os.makedirs(folder_path, exist_ok=True)
     file_name = f"Raport_KNF_{data_zawarcia_od}_do_{data_zawarcia_do}.xlsx"
     file_path = os.path.join(folder_path, file_name)
-    df.to_excel(file_path, index=False)
+    wb.save(file_path)
 
     return {"message": f"Raport wygenerowany: {file_name}", "file_path": file_path}
 

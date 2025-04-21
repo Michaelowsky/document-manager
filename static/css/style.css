@@ -135,7 +135,7 @@ body {
 }
 
 #search-form .search-button:hover {
-    background-color: #777;
+    background-color: #0056b3;
 }
 
 /* Stylizacja tabeli wyników */
@@ -440,4 +440,92 @@ label[for="osoba_prywatna"], label[for="firma"] {
     align-items: center;
     justify-content: center;
     gap: 15px;
+}
+
+/* Animacja zanikania */
+.fade-out {
+    animation: fadeOut 0.1s forwards;
+    visibility: hidden;
+}
+
+/* Animacja pojawiania się */
+.fade-in {
+    animation: fadeIn 0.1s forwards;
+    visibility: visible;
+}
+
+/* Definicje kluczowych klatek animacji */
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Ekran startowy */
+.splash-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: white; /* Możesz zmienić na dowolny kolor */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 1s ease, visibility 1s ease;
+}
+
+.splash-screen.hidden {
+    opacity: 0;
+    visibility: hidden;
+}
+
+.splash-logo {
+    width: 200px; /* Dostosuj rozmiar logo */
+    animation: fadeInLogo 2s ease;
+}
+
+@keyframes fadeInLogo {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+#submit-document-button {
+    position: relative; /* Usuń `fixed`, aby przycisk był w normalnym przepływie dokumentu */
+    margin: 20px auto; /* Wyśrodkowanie */
+    display: block; /* Wyświetl jako blok */
+    background-color: grey; /* Kolor tła */
+    color: white; /* Kolor tekstu */
+    border: none;
+    padding: 15px 30px; /* Rozmiar przycisku */
+    font-size: 18px; /* Rozmiar tekstu */
+    border-radius: 5px; /* Zaokrąglenie rogów */
+    cursor: pointer;
+    text-align: center;
+    transition: background-color 0.3s ease; /* Płynne przejście koloru */
+}
+
+#submit-document-button:hover {
+    background-color: #0056b3; /* Kolor po najechaniu */
 }
