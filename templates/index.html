@@ -327,7 +327,15 @@
 
         </div>
     </div>
-
+    <script>
+        window.addEventListener("beforeunload", async (event) => {
+            try {
+                await fetch("http://127.0.0.1:8000/shutdown", { method: "GET" });
+            } catch (error) {
+                console.error("Błąd podczas zamykania serwera:", error);
+            }
+        });
+    </script>
     <script src="/static/js/script.js?v=1.0"></script>
 </body>
 </html>
