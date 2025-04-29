@@ -479,6 +479,16 @@ document.getElementById('generate-report-button').addEventListener('click', asyn
         queryParams.ochrona_do = ochronaDo;
     }
 
+    const zakonczenieOd = document.getElementById('search-zakonczenie-od').value;
+    if (zakonczenieOd) {
+        queryParams.zakonczenie_od = zakonczenieOd;
+    }
+
+    const zakonczenieDo = document.getElementById('search-zakonczenie-do').value;
+    if (zakonczenieDo) {
+        queryParams.zakonczenie_do = zakonczenieDo;
+    }
+
     const queryString = new URLSearchParams(queryParams).toString();
     const response = await fetch(`http://127.0.0.1:8000/generuj_zestawienie?${queryString}`, {
         method: 'POST'
@@ -547,12 +557,10 @@ document.getElementById('payment-form').addEventListener('submit', async (e) => 
             </table>
         `;
 
-        // Dodaj obsługę kliknięcia dla każdego wiersza
-
         document.querySelectorAll('.clickable-row').forEach(row => {
             row.addEventListener('click', (e) => {
                 const numerPolisy = row.getAttribute('data-numer-polisy');
-                console.log('Kliknięto wiersz, numer polisy:', numerPolisy); // Logowanie
+                console.log('Kliknięto wiersz, numer polisy:', numerPolisy);
                 przejdzDoPaneluPolisy(numerPolisy);
             });
         });
@@ -592,7 +600,6 @@ async function sprawdzPlatnosci(numerPolisy) {
         const encodedNumerPolisy = encodeURIComponent(numerPolisy);
         console.log(`Encoded numer polisy: ${encodedNumerPolisy}`);
 
-        // Pobierz dane o płatnościach
         const response = await fetch(`/platnosci?numer_polisy=${encodedNumerPolisy}`);
         console.log(`Otrzymano odpowiedź z serwera: ${response.status}`);
 
@@ -604,12 +611,10 @@ async function sprawdzPlatnosci(numerPolisy) {
         const data = await response.json();
         console.log("Odpowiedź z backendu (płatności):", data);
 
-        // Pobierz dodatkowe informacje o polisie
         const polisaResponse = await fetch(`/polisy?numer_polisy=${encodedNumerPolisy}`);
         const polisaData = await polisaResponse.json();
         console.log("Dane polisy z backendu:", polisaData);
 
-        // Pobierz dane o ubezpieczonym
         let ubezpieczonyData = null;
         try {
             const ubezpieczonyResponse = await fetch(`/ubezpieczony?numer_polisy=${encodedNumerPolisy}`);
@@ -623,7 +628,6 @@ async function sprawdzPlatnosci(numerPolisy) {
             console.log("Błąd podczas pobierania danych o ubezpieczonym:", error);
         }
 
-        // Wyświetl tabelkę z informacjami o polisie i ubezpieczonym
         const formContainer = document.getElementById("formContainer");
         formContainer.innerHTML = `
             <table>
@@ -694,7 +698,6 @@ async function sprawdzPlatnosci(numerPolisy) {
             `;
             tableContainer.innerHTML = tableHTML;
 
-            // Ukryj ekran dodawania rat
             ratContainer.style.display = "none";
             savePaymentsButton.style.display = "none";
         } else {
@@ -756,8 +759,8 @@ function generujTabeleRat() {
 async function zapiszPlatnosci() {
     const dataPlatnosci = document.querySelectorAll(".dataPlatnosci");
     const kwotaPlatnosci = document.querySelectorAll(".kwotaPlatnosci");
-    const kurtazProcent = parseFloat(document.getElementById("kurtazProcent").value); // Pobierz wartość kurtażu
-    const numerPolisy = document.getElementById("panelPolisyTitle").innerText.split(": ")[1]; // Pobierz numer polisy
+    const kurtazProcent = parseFloat(document.getElementById("kurtazProcent").value);
+    const numerPolisy = document.getElementById("panelPolisyTitle").innerText.split(": ")[1];
     let platnosci = [];
 
     for (let i = 0; i < dataPlatnosci.length; i++) {
@@ -796,7 +799,7 @@ async function zapiszPlatnosci() {
         body: JSON.stringify({
             numer_polisy: numerPolisy,
             platnosci: platnosciString,
-            kurtaz: kurtazProcent, // Dodano kurtaż
+            kurtaz: kurtazProcent,
         }),
     });
 
@@ -966,7 +969,6 @@ document.getElementById("reportKNF").addEventListener("click", function () {
     document.getElementById("reportKNF-data-zawarcia-od").value = "";
     document.getElementById("reportKNF-data-zawarcia-do").value = "";
 });
-
 document.getElementById("reportKNF-form").addEventListener("submit", async (e) => {
     e.preventDefault();
 
@@ -992,15 +994,7 @@ document.getElementById("reportKNF-form").addEventListener("submit", async (e) =
 
         const result = await response.json();
         if (response.ok) {
-            alert(result.message);
-
-            // Pobierz plik Excel
-            const link = document.createElement("a");
-            link.href = result.file_path;
-            link.download = result.file_path.split("/").pop();
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            alert(result.message); // Wyświetl komunikat o zapisaniu raportu
         } else {
             alert(`Błąd: ${result.detail}`);
         }
@@ -1145,3 +1139,288 @@ function updateSubmitButtonVisibility() {
 
 osobaPrywatnaRadio.addEventListener('change', updateSubmitButtonVisibility);
 firmaRadio.addEventListener('change', updateSubmitButtonVisibility);
+
+document.getElementById("edytowaniePolisy").addEventListener("click", function () {
+    console.log("Kliknięto przycisk Edytowanie polisy");
+
+    // Ukryj wszystkie sekcje
+    document.querySelectorAll(".content").forEach(section => {
+        section.classList.remove("active");
+        section.style.display = "none";
+    });
+
+    // Pokaż sekcję "Edytowanie polisy"
+    const editPolicyContent = document.getElementById("editPolicyContent");
+    editPolicyContent.classList.add("active");
+    editPolicyContent.style.display = "block";
+
+    // Wyczyść pole numeru polisy
+    document.getElementById("edit-policy-number").value = "";
+    document.getElementById("edit-policy-results").innerHTML = "";
+});
+
+document.getElementById("edit-policy-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const policyNumber = document.getElementById("edit-policy-number").value.trim();
+    if (!policyNumber) {
+        alert("Proszę wpisać numer polisy.");
+        return;
+    }
+
+    try {
+        // Pobierz dane polis z backendu
+        const response = await fetch(`/polisy?numer_polisy=${encodeURIComponent(policyNumber)}`);
+        if (!response.ok) {
+            throw new Error("Nie znaleziono polisy o podanym numerze.");
+        }
+
+        let policies = await response.json();
+
+        console.log("Odpowiedź z backendu:", policies);
+
+        // Upewnij się, że policies jest tablicą
+        if (!Array.isArray(policies)) {
+            policies = [policies]; // Opakuj pojedynczy obiekt w tablicę
+        }
+
+        // Wygeneruj tabelę z wynikami
+        const resultsContainer = document.getElementById("edit-policy-results");
+        resultsContainer.innerHTML = `
+            <table>
+                <thead>
+                    <tr>
+                        <th>Numer Polisy</th>
+                        <th>Ubezpieczający</th>
+                        <th>Przedmiot Ubezpieczenia</th>
+                        <th>Data Zawarcia</th>
+                        <th>Data Zakończenia</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${policies.map(policy => `
+                        <tr class="clickable-row" data-policy-number="${policy.numer_ubezpieczenia}">
+                            <td>${policy.numer_ubezpieczenia}</td>
+                            <td>${policy.ubezpieczajacy}</td>
+                            <td>${policy.przedmiot_ubezpieczenia}</td>
+                            <td>${policy.data_zawarcia}</td>
+                            <td>${policy.ochrona_do}</td>
+                        </tr>
+                    `).join("")}
+                </tbody>
+            </table>
+        `;
+
+        // Dodaj obsługę kliknięcia w wiersz
+        document.querySelectorAll(".clickable-row").forEach(row => {
+            row.addEventListener("click", (e) => {
+                const policyNumber = row.getAttribute("data-policy-number");
+                console.log("Kliknięto wiersz, numer polisy:", policyNumber);
+                przejdzDoSzczegolowPolisy(policyNumber); // Wywołaj poprawną funkcję
+            });
+        });
+    } catch (error) {
+        alert(error.message);
+        document.getElementById("edit-policy-results").innerHTML = "";
+    }
+});
+
+function przejdzDoSzczegolowPolisy(policyNumber) {
+    console.log("Przejście do szczegółów polisy:", policyNumber);
+
+    // Ukryj wszystkie sekcje
+    document.querySelectorAll(".content").forEach(section => {
+        section.classList.remove("active");
+        section.style.display = "none";
+    });
+
+    // Pokaż sekcję szczegółów polisy
+    const policyDetailsContent = document.getElementById("policyDetailsContent");
+    policyDetailsContent.classList.add("active");
+    policyDetailsContent.style.display = "block";
+
+    // Pobierz dane polisy z backendu
+    pobierzDanePolisy(policyNumber);
+}
+
+async function pobierzDanePolisy(policyNumber) {
+    try {
+        console.log("Wysyłany numer polisy:", policyNumber);
+
+        const response = await fetch(`/polisy?numer_polisy=${encodeURIComponent(policyNumber)}`);
+        if (!response.ok) {
+            throw new Error("Nie znaleziono polisy o podanym numerze.");
+        }
+
+        const policyData = await response.json();
+        console.log("Dane polisy z backendu:", policyData);
+
+        // Wypełnij dane w formularzu
+        const fieldsContainer = document.getElementById("policy-details-fields");
+        fieldsContainer.innerHTML = `
+            <div class="form-group">
+                <label for="policy-number">Numer Polisy:</label>
+                <input type="hidden" id="hidden-policy-number" name="hidden-policy-number" value="${policyData.numer_ubezpieczenia}">
+                <input type="text" id="policy-number" name="policy-number" value="${policyData.numer_ubezpieczenia}" readonly>  
+            </div>
+            <div class="form-group">
+                <label for="policy-holder">Ubezpieczający:</label>
+                <input type="text" id="policy-holder" name="policy-holder" value="${policyData.ubezpieczajacy}">
+            </div>
+            <div class="form-group">
+                <label for="insured">Ubezpieczony:</label>
+                <input type="text" id="insured" name="insured" value="${policyData.ubezpieczony || ''}">
+            </div>
+            <div class="form-group">
+                <label for="insurance-object">Przedmiot Ubezpieczenia:</label>
+                <input type="text" id="insurance-object" name="insurance-object" value="${policyData.przedmiot_ubezpieczenia}">
+            </div>
+            <div class="form-group">
+                <label for="start-date">Data Rozpoczęcia:</label>
+                <input type="date" id="start-date" name="start-date" value="${policyData.ochrona_od}">
+            </div>
+            <div class="form-group">
+                <label for="end-date">Data Zakończenia:</label>
+                <input type="date" id="end-date" name="end-date" value="${policyData.ochrona_do}">
+            </div>
+            <div class="form-group">
+                <label for="premium">Składka:</label>
+                <input type="number" id="premium" name="premium" value="${policyData.skladka}">
+            </div>
+        `;
+    } catch (error) {
+        console.error("Błąd podczas pobierania danych polisy:", error);
+        alert(error.message);
+    }
+}
+
+document.getElementById("policy-details-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const updatedPolicy = {
+        numer_ubezpieczenia: document.getElementById("hidden-policy-number").value, // Pobierz z ukrytego pola
+        ubezpieczajacy: document.getElementById("policy-holder").value,
+        ubezpieczony: document.getElementById("insured").value,
+        przedmiot_ubezpieczenia: document.getElementById("insurance-object").value,
+        ochrona_od: document.getElementById("start-date").value,
+        ochrona_do: document.getElementById("end-date").value,
+        skladka: parseFloat(document.getElementById("premium").value),
+    };
+
+    console.log("Dane wysyłane do backendu:", updatedPolicy);
+
+    try {
+        const response = await fetch(`/polisy`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(updatedPolicy),
+        });
+
+        const responseData = await response.json();
+        console.log("Odpowiedź z backendu:", responseData);
+
+        if (!response.ok) {
+            throw new Error(responseData.detail || "Nie udało się zapisać zmian.");
+        }
+
+        alert("Zmiany zapisane pomyślnie.");
+        przejdzDoEkranuGlownego();
+    } catch (error) {
+        console.error("Błąd podczas zapisywania zmian:", error);
+        alert(error.message);
+    }
+});
+
+// Obsługa formularza wyszukiwania notatek
+document.getElementById("notatki-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const policyNumber = document.getElementById("notatki-policy-number").value.trim();
+    if (!policyNumber) {
+        alert("Proszę wpisać numer polisy.");
+        return;
+    }
+
+    try {
+        const response = await fetch(`/notatki/${encodeURIComponent(policyNumber)}`);
+        if (!response.ok) {
+            throw new Error("Nie znaleziono notatek dla podanego numeru polisy.");
+        }
+
+        const notatki = await response.json();
+        console.log("Odpowiedź z backendu:", notatki);
+
+        const resultsContainer = document.getElementById("notatki-results");
+        resultsContainer.innerHTML = `
+            <h2 style="text-align: center; color: #333;">Notatki dla polisy: ${policyNumber}</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Data Zapisania</th>
+                        <th>Notatka</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${notatki.map(notatka => `
+                        <tr>
+                            <td>${new Date(notatka.data_zapisania).toLocaleString()}</td>
+                            <td>${notatka.notatka}</td>
+                        </tr>
+                    `).join("")}
+                </tbody>
+            </table>
+            <div class="form-group">
+                <label for="new-note" style="font-weight: bold; color: #333;">Dodaj nową notatkę:</label>
+                <textarea id="new-note" rows="4" placeholder="Wpisz treść notatki..."></textarea>
+                <button id="save-note-button">Zapisz Notatkę</button>
+            </div>
+        `;
+
+        // Obsługa zapisywania nowej notatki
+        ustawObslugePrzyciskuZapiszNotatke(policyNumber);
+    } catch (error) {
+        console.error("Błąd podczas pobierania notatek:", error);
+        alert(error.message);
+        document.getElementById("notatki-results").innerHTML = "";
+    }
+});
+
+// Funkcja obsługująca zapis nowej notatki
+function ustawObslugePrzyciskuZapiszNotatke(policyNumber) {
+    const saveNoteButton = document.getElementById("save-note-button");
+    saveNoteButton.addEventListener("click", async () => {
+        const newNote = document.getElementById("new-note").value.trim();
+        if (!newNote) {
+            alert("Proszę wpisać treść notatki.");
+            return;
+        }
+
+        try {
+            const response = await fetch(`/notatki/`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    numer_polisy: policyNumber,
+                    notatka: newNote,
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error("Nie udało się zapisać notatki.");
+            }
+
+            alert("Notatka została zapisana.");
+            document.getElementById("new-note").value = "";
+
+            // Odśwież listę notatek
+            document.getElementById("notatki-form").dispatchEvent(new Event("submit"));
+        } catch (error) {
+            console.error("Błąd podczas zapisywania notatki:", error);
+            alert(error.message);
+        }
+    });
+}

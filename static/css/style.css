@@ -11,7 +11,6 @@ body {
     width: 100%;
 }
 
-/* Pasek boczny */
 .sidebar {
     width: 200px;
     background-color: white;
@@ -43,13 +42,11 @@ body {
     background-color: #777;
 }
 
-/* Stylizacja logo */
 .sidebar .logo {
     width: 200px;
     margin-bottom: 20px;
 }
 
-/* Dropdown menu */
 .dropdown {
     width: 100%;
     text-align: center;
@@ -72,8 +69,6 @@ body {
     display: flex;
 }
 
-/* Główna zawartość */
-
 .main-content {
     margin-left: 240px;
     flex-grow: 1;
@@ -84,7 +79,6 @@ body {
     text-align: center;
 }
 
-/* Stylizacja formularza wyszukiwania */
 #search-form {
     display: flex;
     flex-direction: column;
@@ -138,8 +132,6 @@ body {
     background-color: #0056b3;
 }
 
-/* Stylizacja tabeli wyników */
-
 #pierwsze-pozycje, #wyniki-wyszukiwania {
     display: flex;
     justify-content: center;
@@ -163,7 +155,6 @@ body {
     font-weight: bold;
 }
 
-/* Ukrywanie i pokazywanie zawartości */
 .content {
     display: none;
 }
@@ -172,7 +163,6 @@ body {
     display: block;
 }
 
-/* Stylizacja formularza */
 .form-group {
     margin-bottom: 15px;
 }
@@ -199,8 +189,6 @@ body {
     flex: 1;
 }
 
-/* Stylizacja radio buttons */
-
 input[type="radio"] {
     transform: scale(1.5);
     margin-right: 10px;
@@ -224,15 +212,13 @@ label[for="osoba_prywatna"], label[for="firma"] {
 }
 
 #show-more-button:hover, #generate-report-button:hover {
-    background-color: #777; /* Zmiana koloru przycisku po najechaniu */
+    background-color: #777;
 }
 
 .button-container {
     text-align: center;
     margin-top: 20px;
 }
-
-/* Stylizacja formularza płatności */
 
 #payment-form .form-group {
     display: flex;
@@ -370,7 +356,6 @@ label[for="osoba_prywatna"], label[for="firma"] {
     margin-top: 20px;
 }
 
-/* Wyśrodkowanie formularza */
 .centered-form {
     display: flex;
     flex-direction: column;
@@ -379,13 +364,12 @@ label[for="osoba_prywatna"], label[for="firma"] {
     margin-top: 20px;
 }
 
-/* Styl dla przycisku Szukaj */
 .search-button {
-    background-color: grey; /* Niebieski kolor */
+    background-color: grey; 
     color: white;
     border: none;
-    padding: 15px 30px; /* Większy rozmiar */
-    font-size: 18px; /* Większy tekst */
+    padding: 15px 30px;
+    font-size: 18px; 
     border-radius: 5px;
     cursor: pointer;
     text-align: center;
@@ -393,13 +377,12 @@ label[for="osoba_prywatna"], label[for="firma"] {
 }
 
 .search-button:hover {
-    background-color: #0056b3; /* Ciemniejszy niebieski przy najechaniu */
+    background-color: #0056b3; 
 }
 
-/* Wyśrodkowanie pola tekstowego */
 .centered-input {
-    width: 70%; /* Zwiększ szerokość pola tekstowego */
-    margin: 10px auto; /* Wyśrodkowanie */
+    width: 70%;
+    margin: 10px auto;
     padding: 10px;
     font-size: 16px;
     border: 1px solid #ccc;
@@ -408,8 +391,8 @@ label[for="osoba_prywatna"], label[for="firma"] {
 
 .search-form-group {
     display: flex;
-    justify-content: center; /* Wyśrodkowanie poziome */
-    align-items: center; /* Wyśrodkowanie pionowe */
+    justify-content: center;
+    align-items: center;
 }
 
 #policy-details-container table {
@@ -442,19 +425,16 @@ label[for="osoba_prywatna"], label[for="firma"] {
     gap: 15px;
 }
 
-/* Animacja zanikania */
 .fade-out {
     animation: fadeOut 0.1s forwards;
     visibility: hidden;
 }
 
-/* Animacja pojawiania się */
 .fade-in {
     animation: fadeIn 0.1s forwards;
     visibility: visible;
 }
 
-/* Definicje kluczowych klatek animacji */
 @keyframes fadeOut {
     from {
         opacity: 1;
@@ -473,14 +453,13 @@ label[for="osoba_prywatna"], label[for="firma"] {
     }
 }
 
-/* Ekran startowy */
 .splash-screen {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: white; /* Możesz zmienić na dowolny kolor */
+    background-color: white; 
     display: flex;
     justify-content: center;
     align-items: center;
@@ -496,7 +475,7 @@ label[for="osoba_prywatna"], label[for="firma"] {
 }
 
 .splash-logo {
-    width: 200px; /* Dostosuj rozmiar logo */
+    width: 200px;
     animation: fadeInLogo 2s ease;
 }
 
@@ -512,20 +491,128 @@ label[for="osoba_prywatna"], label[for="firma"] {
 }
 
 #submit-document-button {
-    position: relative; /* Usuń `fixed`, aby przycisk był w normalnym przepływie dokumentu */
-    margin: 20px auto; /* Wyśrodkowanie */
-    display: block; /* Wyświetl jako blok */
-    background-color: grey; /* Kolor tła */
-    color: white; /* Kolor tekstu */
+    position: relative; 
+    margin: 20px auto;
+    display: block; 
+    background-color: grey;
+    color: white; 
     border: none;
-    padding: 15px 30px; /* Rozmiar przycisku */
-    font-size: 18px; /* Rozmiar tekstu */
-    border-radius: 5px; /* Zaokrąglenie rogów */
+    padding: 15px 30px; 
+    font-size: 18px; 
+    border-radius: 5px;
     cursor: pointer;
     text-align: center;
-    transition: background-color 0.3s ease; /* Płynne przejście koloru */
+    transition: background-color 0.3s ease;
 }
 
 #submit-document-button:hover {
-    background-color: #0056b3; /* Kolor po najechaniu */
+    background-color: #0056b3; 
+}
+
+#edit-policy-results table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px auto;
+    text-align: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+#edit-policy-results th, #edit-policy-results td {
+    border: 1px solid #ddd;
+    padding: 10px;
+}
+
+#edit-policy-results th {
+    background-color: #f4f4f4;
+    font-weight: bold;
+    color: #333;
+}
+
+#edit-policy-results tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+#edit-policy-results tr:hover {
+    background-color: #f1f1f1;
+    cursor: pointer;
+}
+
+#edit-policy-results td {
+    color: #555;
+}
+
+#edit-policy-results {
+    margin-top: 20px;
+    padding: 10px;
+    border-radius: 5px;
+    background-color: #fff;
+}
+
+/* Stylizacja kontenera wyników notatek */
+#notatki-results {
+    margin-top: 20px;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Stylizacja tabeli notatek */
+#notatki-results table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+#notatki-results th, #notatki-results td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+}
+
+#notatki-results th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+    color: #333;
+}
+
+#notatki-results tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+#notatki-results tr:hover {
+    background-color: #f1f1f1;
+}
+
+/* Stylizacja pola dodawania nowej notatki */
+#notatki-results .form-group {
+    margin-top: 20px;
+}
+
+#notatki-results textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    resize: vertical;
+}
+
+/* Wyśrodkowanie przycisku "Zapisz Notatkę" */
+#notatki-results button {
+    margin: 10px auto; /* Wyśrodkowanie przycisku */
+    display: block; /* Ustawienie przycisku jako blokowego elementu */
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+}
+
+#notatki-results button:hover {
+    background-color: #0056b3;
 }

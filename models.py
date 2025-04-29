@@ -1,5 +1,6 @@
-from sqlalchemy import Column, Integer, String, Date, Numeric
+from sqlalchemy import Column, Integer, String, Date, Numeric, DateTime  # DateTime pochodzi z sqlalchemy
 from database import Base
+from datetime import datetime  # datetime pochodzi z modułu datetime
 
 class Polisa(Base):
     __tablename__ = "archiwum"
@@ -40,3 +41,11 @@ class Platnosci(Base):
     numer_polisy = Column(String, index=True, unique=True)
     platnosci = Column(String) 
     kurtaz = Column(Numeric(10, 2))  # Dodano kolumnę kurtaz
+
+class Notatki(Base):
+    __tablename__ = "notatki"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    numer_polisy = Column(String, nullable=False)
+    notatka = Column(String, nullable=False)
+    data_zapisania = Column(DateTime, default=datetime.utcnow)  # Dodano datę zapisania

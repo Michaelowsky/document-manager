@@ -11,25 +11,21 @@
         <img src="/static/images/logo.png" alt="Logo firmy" class="splash-logo">
     </div>
     <div class="wrapper">
-        <!-- Pasek boczny -->
         <div class="sidebar">
             <img src="/static/images/logo.png" alt="Logo firmy" class="logo">
             <button id="mainScreenButton" data-target="homeContent">Ekran Główny</button>
             <button id="addDocumentButton" data-target="addDocumentContent">Nowa Polisa</button>
             <button id="addPaymentButton" data-target="addPaymentContent">Płatności</button>
             <button id="documentInfo" data-target="documentInfoContent">Dane polisy</button>
+            <button id="edytowaniePolisy" data-target="editPolicyContent">Edytowanie polisy</button>
+            <button id="notatkiButton" data-target="notatkiContent">Notatki</button>
             <button id="reportKNF" data-target="reportKNFContent">Raport KNF</button>
         </div>
-
-        <!-- Główna zawartość -->
         <div class="main-content">
             <div id="homeContent" class="content active">
                 <h1>Archiwum</h1>
-                
-                <!-- Formularz wyszukiwania -->
                 <form id="search-form">
                     <div class="form-group-inline">
-                        <!-- Pierwszy rząd -->
                         <div class="form-group">
                             <label for="search-ubezpieczajacy">Ubezpieczający:</label>
                             <input type="text" id="search-ubezpieczajacy" name="search-ubezpieczajacy">
@@ -56,7 +52,6 @@
                         </div>
                     </div>
                     <div class="form-group-inline">
-                        <!-- Drugi rząd -->
                         <div class="form-group">
                             <label for="search-numer-polisy">Numer Polisy:</label>
                             <input type="text" id="search-numer-polisy" name="search-numer-polisy">
@@ -86,8 +81,6 @@
                         <button type="submit" class="search-button">Szukaj</button>
                     </div>
                 </form>
-
-                <!-- Tabela wyników wyszukiwania -->
                 <div id="wyniki-wyszukiwania" style="display: none;">
                     <table id="lista-wynikow">
                         <thead>
@@ -100,7 +93,6 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- Wiersze tabeli będą dodawane dynamicznie przez JavaScript -->
                         </tbody>
                     </table>
                     <div class="button-container">
@@ -121,7 +113,6 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- Wiersze tabeli będą dodawane dynamicznie przez JavaScript -->
                         </tbody>
                     </table>
                 </div>
@@ -153,7 +144,7 @@
                         <select id="opiekun" name="opiekun" required>
                             <option value="Alicja Tokarczyk">Alicja Tokarczyk</option>
                             <option value="Sabina Belina">Sabina Belina</option>
-                            <option value="Katarzyna Kamińska">Katarzyna Kamińska</option>
+                            <option value="Katarzyna Kamińska">Katarzyna Kalinowska</option>
                         </select>
                     </div>
 
@@ -217,6 +208,7 @@
                                     <option value="Unum">Unum Życie Towarzystwo Ubezpieczeń i Reasekuracji S. A.</option>
                                     <option value="Uniqa Życie">Uniqa Towarzystwo Ubezpieczeń na Życie S. A.</option>
                                     <option value="LuxMed">Lux Med Sp. z o.o.</option>
+                                    <option value="Brak">Brak</option>
                                 </select>
                             </div>
                         </div>
@@ -302,7 +294,6 @@
                     </div>
                 </form>
                 <div id="policy-details-container" style="margin-top: 20px;">
-                    <!-- Tabela wyników zostanie wygenerowana dynamicznie -->
                 </div>
             </div>
 
@@ -325,6 +316,47 @@
                 </form>
             </div>
 
+            <div id="editPolicyContent" class="content" style="display: none;">
+                <h1>Edytowanie Polisy</h1>
+                <form id="edit-policy-form" class="centered-form">
+                    <div class="form-group">
+                        <label for="edit-policy-number">Numer Polisy:</label>
+                        <input type="text" id="edit-policy-number" name="edit-policy-number" class="small-input centered-input">
+                    </div>
+                    <div class="form-group search-form-group">
+                        <button type="submit" class="search-button large-button">Szukaj</button>
+                    </div>
+                </form>
+                <div id="edit-policy-results" style="margin-top: 20px;">
+                    <!-- Wyniki wyszukiwania będą tutaj -->
+                </div>
+            </div>
+            <div id="policyDetailsContent" class="content" style="display: none;">
+                <h1>Szczegóły Polisy</h1>
+                <form id="policy-details-form" class="centered-form">
+                    <div id="policy-details-fields">
+                        <!-- Pola szczegółów polisy będą generowane dynamicznie -->
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="search-button large-button">Zapisz zmiany</button>
+                    </div>
+                </form>
+            </div>
+            <div id="notatkiContent" class="content" style="display: none;">
+                <h1>Notatki</h1>
+                <form id="notatki-form" class="centered-form">
+                    <div class="form-group">
+                        <label for="notatki-policy-number">Numer Polisy:</label>
+                        <input type="text" id="notatki-policy-number" name="notatki-policy-number" class="small-input centered-input">
+                    </div>
+                    <div class="form-group search-form-group">
+                        <button type="submit" class="search-button large-button">Szukaj</button>
+                    </div>
+                </form>
+                <div id="notatki-results" style="margin-top: 20px;">
+                    <!-- Wyniki wyszukiwania notatek -->
+                </div>
+            </div>
         </div>
     </div>
     <script>

@@ -87,7 +87,6 @@ def wyszukaj_polisy(
     print("Pobrane wyniki wyszukiwania:", wyniki)  # Dodaj logowanie
     return wyniki
 
-# Endpoint do pobierania generowania zestawienia
 @router.post("/generuj_zestawienie/")
 def generuj_zestawienie(
     ubezpieczajacy: str = None,
@@ -100,9 +99,27 @@ def generuj_zestawienie(
     data_zawarcia_do: str = None,
     ochrona_od: str = None,
     ochrona_do: str = None,
+    zakonczenie_od: str = None,
+    zakonczenie_do: str = None,
     db: Session = Depends(get_db)
 ):
-    wyniki = crud.wyszukaj_polisy(db, ubezpieczajacy, ubezpieczony, nip, regon, przedmiot, numer_polisy, data_zawarcia_od, data_zawarcia_do, ochrona_od, ochrona_do, limit=1000, offset=0)
+    wyniki = crud.wyszukaj_polisy(
+        db,
+        ubezpieczajacy=ubezpieczajacy,
+        ubezpieczony=ubezpieczony,
+        nip=nip,
+        regon=regon,
+        przedmiot=przedmiot,
+        numer_polisy=numer_polisy,
+        data_zawarcia_od=data_zawarcia_od,
+        data_zawarcia_do=data_zawarcia_do,
+        ochrona_od=ochrona_od,
+        ochrona_do=ochrona_do,
+        zakonczenie_od=zakonczenie_od,
+        zakonczenie_do=zakonczenie_do,
+        limit=1000,  # Możesz zwiększyć limit, jeśli potrzebujesz więcej wyników
+        offset=0
+    )
     
     # Logowanie wyników
     print("Wyniki wyszukiwania:", wyniki)
@@ -369,7 +386,8 @@ def generuj_raport_knf(
     # Zapisz plik
     folder_path = "RaportyKNF"
     os.makedirs(folder_path, exist_ok=True)
-    file_name = f"Raport_KNF_{data_zawarcia_od}_do_{data_zawarcia_do}.xlsx"
+    now = datetime.now()
+    file_name = f"Raport_KNF_{data_zawarcia_od}_do_{data_zawarcia_do}_{now.strftime('%H_%M')}.xlsx"
     file_path = os.path.join(folder_path, file_name)
     wb.save(file_path)
 
@@ -388,3 +406,50 @@ def szukaj_firme_regon(regon: str = Query(..., description="REGON firmy"), db: S
     if not firma:
         raise HTTPException(status_code=404, detail="Nie znaleziono firmy o podanym REGON.")
     return firma
+
+@router.put("/polisy")
+def aktualizuj_polisy(policja: schemas.PolisaCreate, db: Session = Depends(get_db)):
+    print("Otrzymane dane do aktualizacji:", policja.dict())
+    print("Numer polisy:", policja.numer_ubezpieczenia)
+
+    if not policja.numer_ubezpieczenia.strip():
+        raise HTTPException(status_code=400, detail="Numer polisy nie może być pusty.")
+
+    # Pobierz polisę z tabeli archiwum
+    polisa = db.query(models.Polisa).filter(models.Polisa.numer_ubezpieczenia == policja.numer_ubezpieczenia).first()
+    if not polisa:
+        raise HTTPException(status_code=404, detail="Nie znaleziono polisy o podanym numerze.")
+
+    try:
+        # Aktualizuj dane polisy
+        polisa.ubezpieczajacy = policja.ubezpieczajacy
+        polisa.przedmiot_ubezpieczenia = policja.przedmiot_ubezpieczenia
+        polisa.ochrona_od = policja.ochrona_od
+        polisa.ochrona_do = policja.ochrona_do
+        polisa.skladka = policja.skladka
+
+        # Pobierz dane ubezpieczonego z tabeli ubezpieczeni
+        ubezpieczony = db.query(models.Ubezpieczony).filter(models.Ubezpieczony.numer_polisy == policja.numer_ubezpieczenia).first()
+        if ubezpieczony:
+            ubezpieczony.ubezpieczony = policja.ubezpieczony
+        else:
+            nowy_ubezpieczony = models.Ubezpieczony(
+                numer_polisy=policja.numer_ubezpieczenia,
+                ubezpieczony=policja.ubezpieczony
+            )
+            db.add(nowy_ubezpieczony)
+
+        db.commit()
+        print("Polisa zaktualizowana pomyślnie.")
+        return {"message": "Polisa zaktualizowana pomyślnie"}
+    except Exception as e:
+        print("Błąd podczas aktualizacji polisy:", e)
+        raise HTTPException(status_code=500, detail="Wystąpił błąd podczas aktualizacji polisy.")
+    
+@router.post("/notatki/", response_model=schemas.NotatkaResponse)
+def dodaj_notatke(notatka: schemas.NotatkaCreate, db: Session = Depends(get_db)):
+    return crud.dodaj_notatke(db, notatka)
+
+@router.get("/notatki/{numer_polisy}", response_model=list[schemas.NotatkaResponse])
+def pobierz_notatki(numer_polisy: str, db: Session = Depends(get_db)):
+    return crud.pobierz_notatki(db, numer_polisy)
