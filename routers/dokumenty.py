@@ -28,17 +28,15 @@ def dodaj_polise(polisa: schemas.PolisaCreate, db: Session = Depends(get_db)):
 def pobierz_polisy(numer_polisy: str = Query(..., description="Numer polisy zakodowany w URL"), db: Session = Depends(get_db)):
     print(f"Zapytanie o polisę z numerem: {numer_polisy}")
 
-    # Pobierz polisę
     polisa = db.query(models.Polisa).filter(models.Polisa.numer_ubezpieczenia == numer_polisy.strip()).first()
     if not polisa:
         print("Nie znaleziono polisy o podanym numerze.")
         raise HTTPException(status_code=404, detail="Nie znaleziono polisy o podanym numerze.")
 
-    # Pobierz dane ubezpieczonego
     ubezpieczony = db.query(models.Ubezpieczony).filter(models.Ubezpieczony.numer_polisy == numer_polisy.strip()).first()
     if ubezpieczony:
         print(f"Znaleziono ubezpieczonego: {ubezpieczony.ubezpieczony}")
-        polisa.ubezpieczony = ubezpieczony.ubezpieczony  # Dodaj pole do obiektu polisy
+        polisa.ubezpieczony = ubezpieczony.ubezpieczony  
     else:
         print(f"Nie znaleziono ubezpieczonego dla numeru polisy: {numer_polisy}")
         polisa.ubezpieczony = "Brak danych"
@@ -84,7 +82,7 @@ def wyszukaj_polisy(
     db: Session = Depends(get_db)
 ):
     wyniki = crud.wyszukaj_polisy(db, ubezpieczajacy, ubezpieczony, nip, regon, przedmiot, numer_polisy, data_zawarcia_od, data_zawarcia_do, ochrona_od, ochrona_do, zakonczenie_od, zakonczenie_do, limit, offset)
-    print("Pobrane wyniki wyszukiwania:", wyniki)  # Dodaj logowanie
+    print("Pobrane wyniki wyszukiwania:", wyniki)
     return wyniki
 
 @router.post("/generuj_zestawienie/")
@@ -117,7 +115,7 @@ def generuj_zestawienie(
         ochrona_do=ochrona_do,
         zakonczenie_od=zakonczenie_od,
         zakonczenie_do=zakonczenie_do,
-        limit=1000,  # Możesz zwiększyć limit, jeśli potrzebujesz więcej wyników
+        limit=5000, 
         offset=0
     )
     
@@ -150,7 +148,7 @@ def sprawdz_polisy(
     try:
         print(f"Otrzymany numer polisy (zakodowany): {numer_polisy}")
 
-        numer_polisy = unquote(numer_polisy)  # Dekodowanie numeru polisy
+        numer_polisy = unquote(numer_polisy) 
         print(f"Zdekodowany numer polisy: {numer_polisy}")
 
         platnosc = crud.sprawdz_platnosci(db, numer_polisy)
@@ -189,39 +187,47 @@ def zapisz_platnosci(platnosci: schemas.PlatnosciCreate, db: Session = Depends(g
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
+################
+# ZMIANY TUTAJ #
+################
+
 # Endpoint do aktualizacji płatności
-@router.put("/platnosci", response_model=schemas.PlatnosciResponse)
-def aktualizuj_platnosci(
+@router.put("/polisy")
+def aktualizuj_polisy(policja: schemas.PolisaCreate, db: Session = Depends(get_db)):
+    print("Otrzymane dane do aktualizacji:", policja.dict())
+    print("Numer polisy:", policja.numer_ubezpieczenia)
 
-    
-    numer_polisy: str = Query(..., description="Numer polisy zakodowany w URL"),
-    nowe_platnosci: dict = Body(..., description="Nowe płatności w formacie JSON"),
-    db: Session = Depends(get_db)
-):
+    if not policja.numer_ubezpieczenia.strip():
+        raise HTTPException(status_code=400, detail="Numer polisy nie może być pusty.")
+
+    polisa = db.query(models.Polisa).filter(models.Polisa.numer_ubezpieczenia == policja.numer_ubezpieczenia).first()
+    if not polisa:
+        raise HTTPException(status_code=404, detail="Nie znaleziono polisy o podanym numerze.")
+
     try:
-        print(f"Otrzymany numer polisy (zakodowany): {numer_polisy}")
-        numer_polisy = unquote(numer_polisy)  # Dekodowanie numeru polisy
-        print(f"Zdekodowany numer polisy: {numer_polisy}")
+        polisa.ubezpieczajacy = policja.ubezpieczajacy
+        polisa.przedmiot_ubezpieczenia = policja.przedmiot_ubezpieczenia
+        polisa.ochrona_od = policja.ochrona_od
+        polisa.ochrona_do = policja.ochrona_do
+        polisa.skladka = policja.skladka
 
-        platnosc = crud.sprawdz_platnosci(db, numer_polisy)
-        if not platnosc:
-            raise HTTPException(status_code=404, detail="Nie znaleziono płatności dla podanego numeru polisy.")
+        # Dodaj lub zaktualizuj ubezpieczonego
+        ubezpieczony = db.query(models.Ubezpieczony).filter(models.Ubezpieczony.numer_polisy == policja.numer_ubezpieczenia).first()
+        if ubezpieczony:
+            ubezpieczony.ubezpieczony = policja.ubezpieczony
+        else:
+            nowy_ubezpieczony = models.Ubezpieczony(
+                numer_polisy=polisa.numer_ubezpieczenia,
+                ubezpieczony=policja.ubezpieczony
+            )
+            db.add(nowy_ubezpieczony)
 
-        # Aktualizacja płatności
-        aktualne_platnosci = platnosc.platnosci.split(";")
-        for i, nowa_platnosc in nowe_platnosci.items():
-            if nowa_platnosc:  # Jeśli użytkownik wpisał wartość
-                data_zaplacenia = nowa_platnosc.get("dataZaplacenia", "").strip()
-                kwota_zaplacenia = nowa_platnosc.get("kwotaZaplacenia", "").strip()
-                aktualne_platnosci[int(i)] = f"{aktualne_platnosci[int(i)].split(',')[0]},{aktualne_platnosci[int(i)].split(',')[1]},{data_zaplacenia},{kwota_zaplacenia}"
-
-        platnosc.platnosci = ";".join(aktualne_platnosci)
         db.commit()
-        db.refresh(platnosc)
-        return platnosc
+        print("Polisa zaktualizowana pomyślnie.")
+        return {"message": "Polisa zaktualizowana pomyślnie"}
     except Exception as e:
-        print(f"Błąd podczas aktualizacji płatności: {e}")
-        raise HTTPException(status_code=500, detail="Wystąpił błąd podczas aktualizacji płatności.")
+        print("Błąd podczas aktualizacji polisy:", e)
+        raise HTTPException(status_code=500, detail="Wystąpił błąd podczas aktualizacji polisy.")
     
 @router.post("/raport_knf/")
 def generuj_raport_knf(
@@ -229,11 +235,9 @@ def generuj_raport_knf(
     data_zawarcia_do: str = Body(..., description="Data zawarcia do"),
     db: Session = Depends(get_db)
 ):
-    # Konwertuj zakres dat na obiekty daty
     data_zawarcia_od_date = datetime.strptime(data_zawarcia_od, "%Y-%m-%d").date()
     data_zawarcia_do_date = datetime.strptime(data_zawarcia_do, "%Y-%m-%d").date()
 
-    # Pobierz polisy z tabeli archiwum w podanym przedziale dat
     polisy = (
         db.query(models.Polisa.numer_ubezpieczenia, models.Polisa.towarzystwo, models.Polisa.skladka)
         .filter(models.Polisa.data_zawarcia >= data_zawarcia_od_date)
@@ -241,30 +245,25 @@ def generuj_raport_knf(
         .all()
     )
 
-    # Grupuj dane według towarzystwa
     raport = {}
     for numer_polisy, towarzystwo, skladka in polisy:
         if towarzystwo not in raport:
             raport[towarzystwo] = {
-                "liczba_umow": 0,  # Nowa kolumna
+                "liczba_umow": 0, 
                 "suma_skladek": 0,
                 "suma_skladek_kurtaz": 0,
                 "suma_kwot_zaplacenia": 0,
                 "prowizja_zainkasowana": 0
             }
 
-        # Zwiększ licznik umów
         raport[towarzystwo]["liczba_umow"] += 1
 
-        # Dodaj składkę do sumy składek
         raport[towarzystwo]["suma_skladek"] += skladka
 
-        # Pobierz kurtaż z tabeli płatności
         platnosc = db.query(models.Platnosci).filter(models.Platnosci.numer_polisy == numer_polisy).first()
         if platnosc and platnosc.kurtaz:
             raport[towarzystwo]["suma_skladek_kurtaz"] += Decimal(skladka) * platnosc.kurtaz
 
-        # Oblicz sumę kwot zapłacenia i prowizję w podanym okresie
         if platnosc and platnosc.platnosci:
             platnosci = platnosc.platnosci.split(";")
             for platnosc_entry in platnosci:
@@ -281,13 +280,12 @@ def generuj_raport_knf(
                     print(f"Błąd przetwarzania płatności: {platnosc_entry}, błąd: {e}")
                     continue
 
-    # Konwertuj dane do DataFrame
     df = pd.DataFrame(
         [
             {
                 "Lp.": idx + 1,
                 "Towarzystwo": towarzystwo,
-                "Liczba Umów": dane["liczba_umow"],  # Nowa kolumna
+                "Liczba Umów": dane["liczba_umow"],
                 "Suma Składek": dane["suma_skladek"],
                 "Suma Składek * Kurtaż": dane["suma_skladek_kurtaz"],
                 "Suma Kwot Zapłacenia": dane["suma_kwot_zaplacenia"],
@@ -301,26 +299,22 @@ def generuj_raport_knf(
     ws = wb.active
     ws.title = "Raport KNF"
 
-    # Dodaj wiersz z tekstem "Raport dla KNF za okres:"
     ws.merge_cells("A1:G1")
     ws["A1"] = f"Raport dla KNF za okres: {data_zawarcia_od} - {data_zawarcia_do}"
     ws["A1"].alignment = Alignment(horizontal="center", vertical="center")
     ws["A1"].font = Font(bold=True, size=14)
 
-    # Dodaj wiersz z tekstem "Data zawarcia od - data zawarcia do"
     ws.merge_cells("C2:D2")
     ws["C2"] = f"Data zawarcia od: {data_zawarcia_od} - {data_zawarcia_do}"
     ws["C2"].alignment = Alignment(horizontal="center", vertical="center")
     ws["C2"].font = Font(bold=True)
 
-    # Dodaj wiersz z tekstem "Data wygenerowania: obecna data"
     current_date = datetime.now().strftime("%Y-%m-%d")
     ws.merge_cells("E2:G2")
     ws["E2"] = f"Data wygenerowania: {current_date}"
     ws["E2"].alignment = Alignment(horizontal="center", vertical="center")
     ws["E2"].font = Font(bold=True)
 
-    # Dodaj nagłówki z podziałem na dwa wiersze
     ws.merge_cells("A3:A4")  # Lp.
     ws.merge_cells("B3:B4")  # Towarzystwo
     ws.merge_cells("C3:C4")  # Liczba Umów
@@ -337,13 +331,11 @@ def generuj_raport_knf(
     ws["F4"] = "Przypisana"
     ws["G4"] = "Zainkasowana"
 
-    # Ustaw wyrównanie i pogrubienie dla nagłówków
     for cell in ws["A3:G4"]:
         for c in cell:
             c.alignment = Alignment(horizontal="center", vertical="center")
             c.font = Font(bold=True)
 
-    # Ustaw szerokość kolumn
     ws.column_dimensions["A"].width = 5  # Lp.
     ws.column_dimensions["B"].width = 30  # Towarzystwo
     ws.column_dimensions["C"].width = 15  # Liczba Umów
@@ -352,17 +344,14 @@ def generuj_raport_knf(
     ws.column_dimensions["F"].width = 20  # Prowizja przypisana
     ws.column_dimensions["G"].width = 20  # Prowizja zainkasowana
 
-    # Dodaj dane z DataFrame
     for row_idx, row in enumerate(dataframe_to_rows(df, index=False, header=False), start=5):
         ws.append(row)
 
-        # Formatowanie księgowe dla kolumn D, E, F, G
         ws[f"D{row_idx}"].number_format = "#,##0.00 zł"
         ws[f"E{row_idx}"].number_format = "#,##0.00 zł"
         ws[f"F{row_idx}"].number_format = "#,##0.00 zł"
         ws[f"G{row_idx}"].number_format = "#,##0.00 zł"
 
-    # Dodaj wiersz sumujący
     last_row = ws.max_row + 1
     ws[f"A{last_row}"] = "Suma"
     ws[f"A{last_row}"].font = Font(bold=True)
@@ -383,7 +372,6 @@ def generuj_raport_knf(
     ws[f"G{last_row}"] = f"=SUM(G5:G{last_row-1})"
     ws[f"G{last_row}"].number_format = "#,##0.00 zł"
 
-    # Zapisz plik
     folder_path = "RaportyKNF"
     os.makedirs(folder_path, exist_ok=True)
     now = datetime.now()
@@ -415,20 +403,17 @@ def aktualizuj_polisy(policja: schemas.PolisaCreate, db: Session = Depends(get_d
     if not policja.numer_ubezpieczenia.strip():
         raise HTTPException(status_code=400, detail="Numer polisy nie może być pusty.")
 
-    # Pobierz polisę z tabeli archiwum
     polisa = db.query(models.Polisa).filter(models.Polisa.numer_ubezpieczenia == policja.numer_ubezpieczenia).first()
     if not polisa:
         raise HTTPException(status_code=404, detail="Nie znaleziono polisy o podanym numerze.")
 
     try:
-        # Aktualizuj dane polisy
         polisa.ubezpieczajacy = policja.ubezpieczajacy
         polisa.przedmiot_ubezpieczenia = policja.przedmiot_ubezpieczenia
         polisa.ochrona_od = policja.ochrona_od
         polisa.ochrona_do = policja.ochrona_do
         polisa.skladka = policja.skladka
 
-        # Pobierz dane ubezpieczonego z tabeli ubezpieczeni
         ubezpieczony = db.query(models.Ubezpieczony).filter(models.Ubezpieczony.numer_polisy == policja.numer_ubezpieczenia).first()
         if ubezpieczony:
             ubezpieczony.ubezpieczony = policja.ubezpieczony

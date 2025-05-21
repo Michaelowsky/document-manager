@@ -129,44 +129,38 @@ document.getElementById('document-form').addEventListener('submit', async (e) =>
         opiekun: document.getElementById('opiekun').value,
     };
 
-    console.log(polisa);
-
-    const response = await fetch('http://127.0.0.1:8000/dodaj_polise/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(polisa),
-    });
-
-    const data = await response.json();
     
-    const responseDiv = document.getElementById('response');
-    if (response.ok) {
-        responseDiv.innerHTML = `<p>Polisa dodana: ${data.ubezpieczajacy}, ${data.data_zawarcia} - ${data.ochrona_do}</p>`;
-    } else {
-        responseDiv.innerHTML = `<p>Błąd: ${data.detail}</p>`;
-    }
 
-    // Jeśli użytkownik zaznaczył "Firma", zapisz dane do tabeli "Firmy"
+    console.log("Wysyłane dane polisy:", polisa);
 
-    if (document.getElementById('firma').checked) {
-        const firma = {
-            nip: document.getElementById('nip').value,
-            regon: document.getElementById('regon').value,
-            ubezpieczajacy: document.getElementById('ubezpieczajacy').value,
-        };
-
-        const firmaResponse = await fetch('http://127.0.0.1:8000/dodaj_firme/', {
+    try {
+        const response = await fetch('http://127.0.0.1:8000/dodaj_polise/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(firma),
+            body: JSON.stringify(polisa),
         });
 
-        const firmaData = await firmaResponse.json();
-        if (firmaResponse.ok) {
-            console.log(`Firma dodana: ${firmaData.ubezpieczajacy}`);
+        const responseDiv = document.getElementById('response');
+
+        if (response.ok) {
+            const data = await response.json();
+            console.log("Odpowiedź z serwera:", data);
+
+            responseDiv.innerHTML = `<p>Polisa dodana: ${data.ubezpieczajacy}, ${data.data_zawarcia} - ${data.ochrona_do}</p>`;
+
+            // Resetowanie formularza
+            document.getElementById('document-form').reset();
+
+            // Powrót na ekran główny
+            przejdzDoEkranuGlownego();
         } else {
-            console.log(`Błąd: ${firmaData.detail}`);
+            const errorData = await response.json();
+            console.error("Błąd z serwera:", errorData);
+            responseDiv.innerHTML = `<p>Błąd: ${errorData.detail}</p>`;
         }
+    } catch (error) {
+        console.error("Błąd podczas wysyłania danych:", error);
+        alert("Wystąpił błąd podczas dodawania polisy. Spróbuj ponownie.");
     }
 
     // Zapisz dane do tabeli "Ubezpieczeni"

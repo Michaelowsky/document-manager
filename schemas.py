@@ -16,6 +16,7 @@ class PolisaBase(BaseModel):
     ochrona_do: date
     skladka: float
     opiekun: Optional[str] = None
+    ubezpieczony: Optional[str] = None  # <-- DODAJ TO POLE
 
 class PolisaCreate(PolisaBase):
     pass
