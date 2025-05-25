@@ -113,6 +113,11 @@ document.getElementById('firma').addEventListener('change', function() {
 
 document.getElementById('document-form').addEventListener('submit', async (e) => {
 
+    //////////////////////////////
+    //       TU SĄ ZMIANY       //
+    //////////////////////////////
+
+
     e.preventDefault();
 
     const polisa = {
@@ -656,7 +661,7 @@ async function sprawdzPlatnosci(numerPolisy) {
             console.log("Przetworzone płatności:", platnosci);
 
             let tableHTML = `
-                <table>
+                <table id="platnosci-table">
                     <thead>
                         <tr>
                             <th>Data Płatności</th>
@@ -686,11 +691,54 @@ async function sprawdzPlatnosci(numerPolisy) {
                 `;
             });
             tableHTML += `
-                    </tbody>
-                </table>
-                <button onclick="zapiszAktualizacjePlatnosci('${numerPolisy}')">Zapisz zmiany</button>
+                </tbody>
+            </table>
+            <div style="text-align:center; margin-top:10px; margin-bottom:20px;">
+                <button id="dodajRateButton" style="font-size:2rem; width:48px; height:48px; border-radius:50%; border:none; background:#4caf50; color:white; cursor:pointer;">+</button>
+            </div>
+            <button onclick="zapiszAktualizacjePlatnosci('${numerPolisy}')">Zapisz zmiany</button>
             `;
             tableContainer.innerHTML = tableHTML;
+
+            const dodajRateButton = document.getElementById("dodajRateButton");
+
+            if (dodajRateButton) {
+                dodajRateButton.addEventListener("click", function () {
+                    const tabela = document.getElementById("platnosci-table").getElementsByTagName("tbody")[0];
+                    const nowyWiersz = tabela.insertRow();
+
+                    // Data płatności
+                    const cellData = nowyWiersz.insertCell();
+                    const inputData = document.createElement("input");
+                    inputData.type = "date";
+                    inputData.placeholder = "Data płatności";
+                    cellData.appendChild(inputData);
+
+                    // Składka
+                    const cellKwota = nowyWiersz.insertCell();
+                    const inputKwota = document.createElement("input");
+                    inputKwota.type = "number";
+                    inputKwota.placeholder = "Kwota";
+                    inputKwota.step = "0.01";
+                    cellKwota.appendChild(inputKwota);
+
+                    // Data zapłacenia
+                    const cellZap = nowyWiersz.insertCell();
+                    const inputZap = document.createElement("input");
+                    inputZap.type = "date";
+                    inputZap.className = "dataZaplacenia";
+                    inputZap.setAttribute("data-index", tabela.rows.length - 1);
+                    cellZap.appendChild(inputZap);
+
+                    // Kwota zapłacenia
+                    const cellKwZap = nowyWiersz.insertCell();
+                    const inputKwZap = document.createElement("input");
+                    inputKwZap.type = "number";
+                    inputKwZap.className = "kwotaZaplacenia";
+                    inputKwZap.setAttribute("data-index", tabela.rows.length - 1);
+                    cellKwZap.appendChild(inputKwZap);
+                });
+            }
 
             ratContainer.style.display = "none";
             savePaymentsButton.style.display = "none";
@@ -835,20 +883,24 @@ function przejdzDoEkranuGlownego() {
 /////////////////////////////////////////////////////
 
 async function zapiszAktualizacjePlatnosci(numerPolisy) {
-    const dataZaplaceniaInputs = document.querySelectorAll(".dataZaplacenia");
-    const kwotaZaplaceniaInputs = document.querySelectorAll(".kwotaZaplacenia");
+    const tabela = document.getElementById("platnosci-table").getElementsByTagName("tbody")[0];
     const nowePlatnosci = {};
 
-    dataZaplaceniaInputs.forEach(input => {
-        const index = input.getAttribute("data-index");
-        const dataZaplacenia = input.value;
-        const kwotaZaplacenia = kwotaZaplaceniaInputs[index].value;
+    for (let i = 0; i < tabela.rows.length; i++) {
+        const row = tabela.rows[i];
+        // Pobierz dane z inputa jeśli istnieje, w przeciwnym razie z tekstu
+        const dataPlatnosci = row.cells[0].querySelector("input") ? row.cells[0].querySelector("input").value : row.cells[0].innerText;
+        const skladka = row.cells[1].querySelector("input") ? row.cells[1].querySelector("input").value : row.cells[1].innerText;
+        const dataZaplacenia = row.cells[2].querySelector("input") ? row.cells[2].querySelector("input").value : row.cells[2].innerText;
+        const kwotaZaplacenia = row.cells[3].querySelector("input") ? row.cells[3].querySelector("input").value : row.cells[3].innerText;
 
-        nowePlatnosci[index] = {
-            dataZaplacenia: dataZaplacenia || "",
-            kwotaZaplacenia: kwotaZaplacenia || ""
+        nowePlatnosci[i] = {
+            dataPlatnosci: dataPlatnosci.trim(),
+            skladka: skladka.trim(),
+            dataZaplacenia: dataZaplacenia.trim(),
+            kwotaZaplacenia: kwotaZaplacenia.trim()
         };
-    });
+    }
 
     console.log("Nowe płatności do zapisania:", nowePlatnosci);
 
@@ -862,8 +914,6 @@ async function zapiszAktualizacjePlatnosci(numerPolisy) {
 
     if (response.ok) {
         alert("Płatności zaktualizowane pomyślnie.");
-
-        // Przejdź na ekran główny
         przejdzDoEkranuGlownego();
     } else {
         const result = await response.json();

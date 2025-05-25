@@ -395,42 +395,6 @@ def szukaj_firme_regon(regon: str = Query(..., description="REGON firmy"), db: S
         raise HTTPException(status_code=404, detail="Nie znaleziono firmy o podanym REGON.")
     return firma
 
-@router.put("/polisy")
-def aktualizuj_polisy(policja: schemas.PolisaCreate, db: Session = Depends(get_db)):
-    print("Otrzymane dane do aktualizacji:", policja.dict())
-    print("Numer polisy:", policja.numer_ubezpieczenia)
-
-    if not policja.numer_ubezpieczenia.strip():
-        raise HTTPException(status_code=400, detail="Numer polisy nie może być pusty.")
-
-    polisa = db.query(models.Polisa).filter(models.Polisa.numer_ubezpieczenia == policja.numer_ubezpieczenia).first()
-    if not polisa:
-        raise HTTPException(status_code=404, detail="Nie znaleziono polisy o podanym numerze.")
-
-    try:
-        polisa.ubezpieczajacy = policja.ubezpieczajacy
-        polisa.przedmiot_ubezpieczenia = policja.przedmiot_ubezpieczenia
-        polisa.ochrona_od = policja.ochrona_od
-        polisa.ochrona_do = policja.ochrona_do
-        polisa.skladka = policja.skladka
-
-        ubezpieczony = db.query(models.Ubezpieczony).filter(models.Ubezpieczony.numer_polisy == policja.numer_ubezpieczenia).first()
-        if ubezpieczony:
-            ubezpieczony.ubezpieczony = policja.ubezpieczony
-        else:
-            nowy_ubezpieczony = models.Ubezpieczony(
-                numer_polisy=policja.numer_ubezpieczenia,
-                ubezpieczony=policja.ubezpieczony
-            )
-            db.add(nowy_ubezpieczony)
-
-        db.commit()
-        print("Polisa zaktualizowana pomyślnie.")
-        return {"message": "Polisa zaktualizowana pomyślnie"}
-    except Exception as e:
-        print("Błąd podczas aktualizacji polisy:", e)
-        raise HTTPException(status_code=500, detail="Wystąpił błąd podczas aktualizacji polisy.")
-    
 @router.post("/notatki/", response_model=schemas.NotatkaResponse)
 def dodaj_notatke(notatka: schemas.NotatkaCreate, db: Session = Depends(get_db)):
     return crud.dodaj_notatke(db, notatka)
@@ -438,3 +402,33 @@ def dodaj_notatke(notatka: schemas.NotatkaCreate, db: Session = Depends(get_db))
 @router.get("/notatki/{numer_polisy}", response_model=list[schemas.NotatkaResponse])
 def pobierz_notatki(numer_polisy: str, db: Session = Depends(get_db)):
     return crud.pobierz_notatki(db, numer_polisy)
+
+################
+# ZMIANY TUTAJ #
+################
+
+@router.put("/platnosci")
+def aktualizuj_platnosci(
+    numer_polisy: str = Query(..., description="Numer polisy"),
+    nowe_platnosci: dict = Body(...),
+    db: Session = Depends(get_db)
+):
+    try:
+        platnosc = db.query(models.Platnosci).filter(models.Platnosci.numer_polisy == numer_polisy).first()
+        if not platnosc:
+            raise HTTPException(status_code=404, detail="Nie znaleziono płatności dla tej polisy.")
+
+        # Zbuduj nowy tekst do pola platnosci na podstawie przesłanych danych
+        platnosci_lista = []
+        for i in range(len(nowe_platnosci)):
+            p = nowe_platnosci[str(i)]
+            platnosci_lista.append(
+                f"{p['dataPlatnosci']},{p['skladka']},{p['dataZaplacenia']},{p['kwotaZaplacenia']}"
+            )
+        platnosc.platnosci = ";".join(platnosci_lista)
+
+        db.commit()
+        return {"message": "Płatności zaktualizowane pomyślnie."}
+    except Exception as e:
+        print("Błąd podczas aktualizacji płatności:", e)
+        raise HTTPException(status_code=500, detail="Wystąpił błąd podczas aktualizacji płatności.")
