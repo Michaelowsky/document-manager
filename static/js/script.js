@@ -668,6 +668,7 @@ async function sprawdzPlatnosci(numerPolisy) {
                             <th>Składka</th>
                             <th>Data Zapłacenia</th>
                             <th>Kwota Zapłacenia</th>
+                            <th></th> <!-- Kolumna na minus -->
                         </tr>
                     </thead>
                     <tbody>
@@ -687,6 +688,9 @@ async function sprawdzPlatnosci(numerPolisy) {
                             <input type="number" class="kwotaZaplacenia" data-index="${index}" 
                                 value="${kwotaZaplacenia && kwotaZaplacenia.trim() ? kwotaZaplacenia.trim() : ""}" />
                         </td>
+                        <td>
+                            <button class="usunRateButton" title="Usuń ratę" style="font-size:1.2rem; width:28px; height:28px; border-radius:50%; border:none; background:#e53935; color:white; cursor:pointer;">−</button>
+                        </td>
                     </tr>
                 `;
             });
@@ -699,6 +703,14 @@ async function sprawdzPlatnosci(numerPolisy) {
             <button onclick="zapiszAktualizacjePlatnosci('${numerPolisy}')">Zapisz zmiany</button>
             `;
             tableContainer.innerHTML = tableHTML;
+
+            setTimeout(() => {
+                document.querySelectorAll(".usunRateButton").forEach(btn => {
+                    btn.onclick = function () {
+                        this.closest("tr").remove();
+                    };
+                });
+            }, 0);
 
             const dodajRateButton = document.getElementById("dodajRateButton");
 
@@ -737,6 +749,17 @@ async function sprawdzPlatnosci(numerPolisy) {
                     inputKwZap.className = "kwotaZaplacenia";
                     inputKwZap.setAttribute("data-index", tabela.rows.length - 1);
                     cellKwZap.appendChild(inputKwZap);
+
+                    const cellRemove = nowyWiersz.insertCell();
+                    const removeBtn = document.createElement("button");
+                    removeBtn.innerText = "−";
+                    removeBtn.title = "Usuń ratę";
+                    removeBtn.style.cssText = "font-size:1.2rem;width:28px;height:28px;border-radius:50%;border:none;background:#e53935;color:white;cursor:pointer;";
+                    removeBtn.className = "usunRateButton";
+                    removeBtn.addEventListener("click", function () {
+                        nowyWiersz.remove();
+                    });
+                    cellRemove.appendChild(removeBtn);
                 });
             }
 

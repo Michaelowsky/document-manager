@@ -418,7 +418,13 @@ def aktualizuj_platnosci(
         if not platnosc:
             raise HTTPException(status_code=404, detail="Nie znaleziono płatności dla tej polisy.")
 
-        # Zbuduj nowy tekst do pola platnosci na podstawie przesłanych danych
+        # Jeśli nie ma żadnych rat, usuń cały rekord płatności
+        if len(nowe_platnosci) == 0:
+            db.delete(platnosc)
+            db.commit()
+            return {"message": "Wszystkie raty usunięte, rekord płatności został usunięty."}
+
+        # W przeciwnym razie zaktualizuj pole platnosci
         platnosci_lista = []
         for i in range(len(nowe_platnosci)):
             p = nowe_platnosci[str(i)]
