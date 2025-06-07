@@ -1012,11 +1012,14 @@ document.getElementById("policy-search-form").addEventListener("submit", async (
                 </tbody>
             </table>
         `;
+        wyswietlNotatkiPodPolisa(policyData.numer_ubezpieczenia, policyDetailsContainer);
     } catch (error) {
         alert(error.message);
         document.getElementById("policy-details-container").innerHTML = "";
     }
 });
+
+
 
 document.getElementById("reportKNF").addEventListener("click", function () {
     console.log("Kliknięto przycisk Raport KNF");
@@ -1368,6 +1371,74 @@ async function pobierzDanePolisy(policyNumber) {
     }
 }
 
+async function wyswietlNotatkiPodPolisa(numerPolisy, container) {
+    // Usuń poprzedni kontener notatek, jeśli istnieje (by nie dublować)
+    const staryDiv = document.getElementById("notatki-pod-polisą");
+    if (staryDiv) staryDiv.remove();
+
+    let notatkiDiv = document.createElement('div');
+    notatkiDiv.id = "notatki-pod-polisą";
+    notatkiDiv.innerHTML = `<h3 style="margin-top:2em; text-align:center;">Notatki</h3><div id="notatki-lista"></div>`;
+    container.appendChild(notatkiDiv);
+
+    try {
+        const response = await fetch(`/notatki/${encodeURIComponent(numerPolisy)}`);
+        if (!response.ok) {
+            notatkiDiv.innerHTML += "<p style='color:red;'>Brak notatek lub błąd pobierania.</p>";
+            return;
+        }
+        const notatki = await response.json();
+        let html = `
+            <table style="margin-bottom:1em;">
+                <thead>
+                    <tr>
+                        <th>Data Zapisania</th>
+                        <th>Notatka</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${notatki.map(notatka => `
+                        <tr>
+                            <td>${new Date(notatka.data_zapisania).toLocaleString()}</td>
+                            <td>${notatka.notatka}</td>
+                        </tr>
+                    `).join("")}
+                </tbody>
+            </table>
+            <div class="form-group">
+                <label for="new-note" style="font-weight: bold;">Dodaj nową notatkę:</label>
+                <textarea id="new-note" rows="3" style="width:100%;" placeholder="Wpisz treść notatki..."></textarea>
+                <div style="display: flex; justify-content: center;">
+                    <button id="save-note-button" class="search-button" style="margin-top:0.5em;">Zapisz Notatkę</button>
+                </div>
+            </div>
+        `;
+        document.getElementById("notatki-lista").innerHTML = html;
+
+        // Ustaw obsługę tylko raz!
+        document.getElementById("save-note-button").onclick = async () => {
+            const newNote = document.getElementById("new-note").value.trim();
+            if (!newNote) {
+                alert("Proszę wpisać treść notatki.");
+                return;
+            }
+            const res = await fetch("/notatki/", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ numer_polisy: numerPolisy, notatka: newNote })
+            });
+            if (res.ok) {
+                alert("Notatka zapisana.");
+                wyswietlNotatkiPodPolisa(numerPolisy, container); // Odśwież listę
+            } else {
+                alert("Błąd zapisu notatki.");
+            }
+        };
+    } catch (error) {
+        notatkiDiv.innerHTML += "<p style='color:red;'>Błąd pobierania notatek.</p>";
+    }
+}
+
 document.getElementById("policy-details-form").addEventListener("submit", async (e) => {
     e.preventDefault();
 
@@ -1407,94 +1478,3 @@ document.getElementById("policy-details-form").addEventListener("submit", async 
     }
 });
 
-// Obsługa formularza wyszukiwania notatek
-document.getElementById("notatki-form").addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    const policyNumber = document.getElementById("notatki-policy-number").value.trim();
-    if (!policyNumber) {
-        alert("Proszę wpisać numer polisy.");
-        return;
-    }
-
-    try {
-        const response = await fetch(`/notatki/${encodeURIComponent(policyNumber)}`);
-        if (!response.ok) {
-            throw new Error("Nie znaleziono notatek dla podanego numeru polisy.");
-        }
-
-        const notatki = await response.json();
-        console.log("Odpowiedź z backendu:", notatki);
-
-        const resultsContainer = document.getElementById("notatki-results");
-        resultsContainer.innerHTML = `
-            <h2 style="text-align: center; color: #333;">Notatki dla polisy: ${policyNumber}</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Data Zapisania</th>
-                        <th>Notatka</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${notatki.map(notatka => `
-                        <tr>
-                            <td>${new Date(notatka.data_zapisania).toLocaleString()}</td>
-                            <td>${notatka.notatka}</td>
-                        </tr>
-                    `).join("")}
-                </tbody>
-            </table>
-            <div class="form-group">
-                <label for="new-note" style="font-weight: bold; color: #333;">Dodaj nową notatkę:</label>
-                <textarea id="new-note" rows="4" placeholder="Wpisz treść notatki..."></textarea>
-                <button id="save-note-button">Zapisz Notatkę</button>
-            </div>
-        `;
-
-        // Obsługa zapisywania nowej notatki
-        ustawObslugePrzyciskuZapiszNotatke(policyNumber);
-    } catch (error) {
-        console.error("Błąd podczas pobierania notatek:", error);
-        alert(error.message);
-        document.getElementById("notatki-results").innerHTML = "";
-    }
-});
-
-// Funkcja obsługująca zapis nowej notatki
-function ustawObslugePrzyciskuZapiszNotatke(policyNumber) {
-    const saveNoteButton = document.getElementById("save-note-button");
-    saveNoteButton.addEventListener("click", async () => {
-        const newNote = document.getElementById("new-note").value.trim();
-        if (!newNote) {
-            alert("Proszę wpisać treść notatki.");
-            return;
-        }
-
-        try {
-            const response = await fetch(`/notatki/`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    numer_polisy: policyNumber,
-                    notatka: newNote,
-                }),
-            });
-
-            if (!response.ok) {
-                throw new Error("Nie udało się zapisać notatki.");
-            }
-
-            alert("Notatka została zapisana.");
-            document.getElementById("new-note").value = "";
-
-            // Odśwież listę notatek
-            document.getElementById("notatki-form").dispatchEvent(new Event("submit"));
-        } catch (error) {
-            console.error("Błąd podczas zapisywania notatki:", error);
-            alert(error.message);
-        }
-    });
-}
