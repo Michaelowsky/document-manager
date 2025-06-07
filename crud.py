@@ -68,7 +68,7 @@ def wyszukaj_polisy(db: Session, ubezpieczajacy: str = None, ubezpieczony: str =
     
     # Filtrowanie po numerze polisy
     if numer_polisy:
-        query = query.filter(models.Polisa.numer_ubezpieczenia.like(f"%{numer_polisy}%"))
+        query = query.filter(models.Polisa.numer_ubezpieczenia.ilike(numer_polisy))
     
     # Filtrowanie po dacie zawarcia
     if data_zawarcia_od and data_zawarcia_do:

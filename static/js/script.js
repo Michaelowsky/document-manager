@@ -306,7 +306,7 @@ document.getElementById('search-form').addEventListener('submit', async (e) => {
 
     const numerPolisy = document.getElementById('search-numer-polisy').value;
     if (numerPolisy) {
-        queryParams.numer_polisy = numerPolisy;
+        queryParams.numer_polisy = numerPolisy.toUpperCase();
     }
 
     const dataZawarciaOd = document.getElementById('search-data-zawarcia-od').value;
@@ -1328,31 +1328,38 @@ async function pobierzDanePolisy(policyNumber) {
             <div class="form-group">
                 <label for="policy-number">Numer Polisy:</label>
                 <input type="hidden" id="hidden-policy-number" name="hidden-policy-number" value="${policyData.numer_ubezpieczenia}">
-                <input type="text" id="policy-number" name="policy-number" value="${policyData.numer_ubezpieczenia}" readonly>  
+                <input type="text" id="policy-number" name="policy-number" value="${policyData.numer_ubezpieczenia}" readonly  
+                    style="font-size:1.3rem; height: 2.5em; width: 350px;">
             </div>
             <div class="form-group">
                 <label for="policy-holder">Ubezpieczający:</label>
-                <input type="text" id="policy-holder" name="policy-holder" value="${policyData.ubezpieczajacy}">
+                <input type="text" id="policy-holder" name="policy-holder" value="${policyData.ubezpieczajacy}" 
+                    style="font-size:1.3rem; height: 2.5em; width: 350px;">
             </div>
             <div class="form-group">
                 <label for="insured">Ubezpieczony:</label>
-                <input type="text" id="insured" name="insured" value="${policyData.ubezpieczony || ''}">
+                <input type="text" id="insured" name="insured" value="${policyData.ubezpieczony || ''}" 
+                    style="font-size:1.3rem; height: 2.5em; width: 350px;">
             </div>
             <div class="form-group">
                 <label for="insurance-object">Przedmiot Ubezpieczenia:</label>
-                <input type="text" id="insurance-object" name="insurance-object" value="${policyData.przedmiot_ubezpieczenia}">
+                <input type="text" id="insurance-object" name="insurance-object" value="${policyData.przedmiot_ubezpieczenia}" 
+                    style="font-size:1.3rem; height: 2.5em; width: 350px;">
             </div>
             <div class="form-group">
                 <label for="start-date">Data Rozpoczęcia:</label>
-                <input type="date" id="start-date" name="start-date" value="${policyData.ochrona_od}">
+                <input type="date" id="start-date" name="start-date" value="${policyData.ochrona_od}" 
+                    style="font-size:1.3rem; height: 2.5em; width: 350px;">
             </div>
             <div class="form-group">
                 <label for="end-date">Data Zakończenia:</label>
-                <input type="date" id="end-date" name="end-date" value="${policyData.ochrona_do}">
+                <input type="date" id="end-date" name="end-date" value="${policyData.ochrona_do}" 
+                    style="font-size:1.3rem; height: 2.5em; width: 350px;">
             </div>
             <div class="form-group">
                 <label for="premium">Składka:</label>
-                <input type="number" id="premium" name="premium" value="${policyData.skladka}">
+                <input type="number" id="premium" name="premium" value="${policyData.skladka}" 
+                    style="font-size:1.3rem; height: 2.5em; width: 350px;">
             </div>
         `;
     } catch (error) {

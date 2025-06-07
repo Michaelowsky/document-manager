@@ -28,7 +28,7 @@ def dodaj_polise(polisa: schemas.PolisaCreate, db: Session = Depends(get_db)):
 def pobierz_polisy(numer_polisy: str = Query(..., description="Numer polisy zakodowany w URL"), db: Session = Depends(get_db)):
     print(f"Zapytanie o polisę z numerem: {numer_polisy}")
 
-    polisa = db.query(models.Polisa).filter(models.Polisa.numer_ubezpieczenia == numer_polisy.strip()).first()
+    polisa = db.query(models.Polisa).filter(models.Polisa.numer_ubezpieczenia.ilike(numer_polisy.strip())).first()
     if not polisa:
         print("Nie znaleziono polisy o podanym numerze.")
         raise HTTPException(status_code=404, detail="Nie znaleziono polisy o podanym numerze.")
